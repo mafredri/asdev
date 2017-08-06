@@ -39,11 +39,12 @@ func (s *stringVar) Set(value string) error {
 
 func main() {
 	var (
-		username = flag.String("username", "", "Username (login)")
-		password = flag.String("password", "", "Password (login)")
-		timeout  = flag.Duration("timeout", 5*time.Minute, "Timeout for package submission")
-		verbose  = flag.Bool("v", false, "Verbose")
-		browser  = flag.String("browser", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "Path to Chrome or Chromium binary")
+		username   = flag.String("username", "", "Username (login)")
+		password   = flag.String("password", "", "Password (login)")
+		timeout    = flag.Duration("timeout", 5*time.Minute, "Timeout for package submission")
+		verbose    = flag.Bool("v", false, "Verbose")
+		browser    = flag.String("browser", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "Path to Chrome or Chromium binary")
+		noHeadless = flag.Bool("no-headless", false, "Disable (Chrome) headless mode")
 	)
 
 	var apkVars stringVar
@@ -84,7 +85,7 @@ func main() {
 		cancel()
 	}()
 
-	if err := run(ctx, *verbose, *browser, *username, *password, apks); err != nil {
+	if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -93,7 +94,7 @@ var (
 	optionTagRe = regexp.MustCompile("</?option( [^>]+)?>")
 )
 
-func run(ctx context.Context, verbose bool, chromeBin string, username, password string, apks []*apkg.File) error {
+func run(ctx context.Context, verbose, headless bool, chromeBin string, username, password string, apks []*apkg.File) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -103,7 +104,7 @@ func run(ctx context.Context, verbose bool, chromeBin string, username, password
 	}
 	defer os.RemoveAll(tmpdir)
 
-	chrome, err := startChrome(ctx, chromeBin, tmpdir)
+	chrome, err := startChrome(ctx, chromeBin, tmpdir, headless)
 	if err != nil {
 		return err
 	}

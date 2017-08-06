@@ -25,13 +25,16 @@ func (c *chromeProc) Close() error {
 	return c.cmd.Process.Kill()
 }
 
-func startChrome(ctx context.Context, name string, tmpdir string) (*chromeProc, error) {
+func startChrome(ctx context.Context, name string, tmpdir string, headless bool) (*chromeProc, error) {
 	args := []string{
 		"--no-default-browser-check",
 		"--no-first-run",
 		"--user-data-dir=" + tmpdir,
 		"--remote-debugging-port=0", // Automatic port selection by OS.
 		"about:blank",               // No URL.
+	}
+	if headless {
+		args = append(args, "--headless", "--disable-gpu")
 	}
 	cmd := exec.CommandContext(ctx, name, args...)
 
