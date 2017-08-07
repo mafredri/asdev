@@ -33,23 +33,39 @@ Login (and upload) via environment variables:
 ```console
 $ export ASDEV_USERNAME="my-user"
 $ export ASDEV_PASSWORD="my-password"
-$ asdev -apk ./path/to/my.apk -apk ./path/to/my-other.apk
+$ asdev upload ./path/to/my.apk ./path/to/my-other.apk
 ```
 
-Or login via command line:
+Or provide login info via command line flags:
 
 ```console
-$ asdev -username my-user -password my-password -apk ./path/to/my.apk -apk ./path/to/my-other.apk
+$ asdev --username my-user --password my-password upload ./path/to/my.apk ./path/to/my-other.apk
 ```
 
-By default Chrome is run in headless mode, if you wish to see what `asdev` is doing, you can disable headless mode with the `-no-headless` command line flag.
-
-```console
-$ asdev -no-headless -apk ./path/to/my.apk -apk ./path/to/my-other.apk
-```
+By default Chrome is run in headless mode, if you wish to see what `asdev` is doing, you can disable headless mode with the `--no-headless` command line flag.
 
 **NOTE:** If the Chrome binary on your system exists in another location than the one expected by `asdev` (e.g. `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`), then please provide the path to the browser via the command line option `-browser`.
 
+For more information, see `--help`:
+
 ```console
-$ asdev -browser /my/path/to/chrome -apk ...
+$ asdev --help
+usage: asdev [<flags>] <command> [<args> ...]
+
+Flags:
+  -h, --help               Show context-sensitive help (also try --help-long and
+                           --help-man).
+  -u, --username=USERNAME  Username (for login)
+  -p, --password=PASSWORD  Password (for login)
+      --browser="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+                           Path to Chrome or Chromium binary
+      --no-headless        Disable (Chrome) headless mode
+  -v, --verbose            Verbose mode
+
+Commands:
+  help [<command>...]
+    Show help.
+
+  upload [<flags>] <APKs>...
+    Upload one or multiple APK(s)
 ```
