@@ -45,16 +45,16 @@ func main() {
 		noHeadless = kingpin.Flag("no-headless", "Disable (Chrome) headless mode").Bool()
 		verbose    = kingpin.Flag("verbose", "Verbose mode").Short('v').Bool()
 
-		upload  = kingpin.Command("upload", "Upload one or multiple APK(s)")
-		timeout = upload.Flag("timeout", "Upload timeout").Short('t').Default("5m").Duration()
-		apkVars = upload.Arg("APKs", "APK(s) to upload").Required().ExistingFiles()
+		update  = kingpin.Command("update", "Update apps by uploading one or multiple APK(s)")
+		timeout = update.Flag("timeout", "Update timeout").Short('t').Default("10m").Duration()
+		apkVars = update.Arg("APKs", "APK(s) to update").Required().ExistingFiles()
 	)
 
 	// Provide help via short flag as well.
 	kingpin.HelpFlag.Short('h')
 
 	switch kingpin.Parse() {
-	case upload.FullCommand():
+	case update.FullCommand():
 		if *username == "" || *password == "" {
 			fmt.Println("error: username or password is missing, use cli flag or set in environment")
 			os.Exit(1)
