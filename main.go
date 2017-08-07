@@ -36,6 +36,9 @@ const (
 	defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 )
 
+// Pull in latest categories from App Central.
+//go:generate go run cmd/catgen/main.go main category.go
+
 func main() {
 	var (
 		username = kingpin.Flag("username", "Username (for login)").Short('u').Envar("ASDEV_USERNAME").String()
