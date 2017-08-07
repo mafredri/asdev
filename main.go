@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
-	"strings"
 
 	"github.com/mafredri/asdev/apkg"
 
@@ -30,20 +29,35 @@ func main() {
 	var (
 		username = kingpin.Flag("username", "Username (for login)").Short('u').Envar("ASDEV_USERNAME").String()
 		password = kingpin.Flag("password", "Password (for login)").Short('p').Envar("ASDEV_PASSWORD").String()
-		browser  = kingpin.Flag("browser", "Path to Chrome or Chromium binary").
+		browser  = kingpin.Flag("browser", "Path to Chrome or Chromium executable").
 				Default(defaultBrowser).Envar("ASDEV_BROWSER").String()
 		noHeadless = kingpin.Flag("no-headless", "Disable (Chrome) headless mode").Bool()
+		timeout    = kingpin.Flag("timeout", "Command timeout").Default("10m").Duration()
 		verbose    = kingpin.Flag("verbose", "Verbose mode").Short('v').Bool()
 
-		update  = kingpin.Command("update", "Update apps by uploading one or multiple APK(s)")
-		timeout = update.Flag("timeout", "Update timeout").Short('t').Default("10m").Duration()
-		apkVars = update.Arg("APKs", "APK(s) to update").Required().ExistingFiles()
+		show           = kingpin.Command("show", "Show additional information")
+		showCategories = show.Command("categories", "Show all available categories")
+
+		update     = kingpin.Command("update", "Update apps by uploading one or multiple APK(s)")
+		updateAPKs = update.Arg("APKs", "APK(s) to update").Required().ExistingFiles()
 	)
 
 	// Provide help via short flag as well.
 	kingpin.HelpFlag.Short('h')
 
 	switch kingpin.Parse() {
+	case showCategories.FullCommand():
+		maxlen := 0
+		for _, c := range categories {
+			if len(c) > maxlen {
+				maxlen = len(c)
+			}
+		}
+		format := fmt.Sprintf("  %%-%ds(%%s)\n", maxlen+1)
+		fmt.Printf("Available categories:\n\n")
+		for _, c := range categories {
+			fmt.Printf(format, c, category(c).Name())
+		}
 	case update.FullCommand():
 		if *username == "" || *password == "" {
 			fmt.Println("error: username or password is missing, use cli flag or set in environment")
@@ -51,7 +65,7 @@ func main() {
 		}
 
 		var apks []*apkg.File
-		for _, av := range *apkVars {
+		for _, av := range *updateAPKs {
 			apk, err := apkg.Open(av)
 			if err != nil {
 				fmt.Printf("error: could open apk %q: %v\n", av, err)
