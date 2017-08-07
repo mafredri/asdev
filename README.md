@@ -45,23 +45,41 @@ By default Chrome is run in headless mode, if you wish to see what `asdev` is do
 For more information, see `--help`:
 
 ```console
-$ asdev --help
+$ asdev --help-long
 usage: asdev [<flags>] <command> [<args> ...]
 
 Flags:
-  -h, --help               Show context-sensitive help (also try --help-long and
-                           --help-man).
+  -h, --help               Show context-sensitive help (also try --help-long and --help-man).
   -u, --username=USERNAME  Username (for login)
   -p, --password=PASSWORD  Password (for login)
       --browser="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-                           Path to Chrome or Chromium binary
+                           Path to Chrome or Chromium executable
       --no-headless        Disable (Chrome) headless mode
+      --timeout=10m        Command timeout
   -v, --verbose            Verbose mode
 
 Commands:
   help [<command>...]
     Show help.
 
+
+  show categories
+    Show all available categories
+
+
   update [<flags>] <APKs>...
     Update apps by uploading one or multiple APK(s)
+
+    -c, --category=CATEGORY ...  (NOT IMPLEMENTED) Change categorie(s)
+    -t, --tag=TAG ...            (NOT IMPLEMENTED) Change tag(s)
+    -b, --beta                   (NOT IMPLEMENTED) Beta app
+    -i, --icon=ICON              (NOT IMPLEMENTED) Change icon (256x256)
+
+  create --category=CATEGORY --tag=TAG [<flags>] <APKs>...
+    (NOT IMPLEMENTED) Submit a new application by uploading one or multiple APK(s)
+
+    -c, --category=CATEGORY ...  Categorie(s) for the application
+    -t, --tag=TAG ...            Tag(s) for the application
+    -b, --beta                   Set app to beta status
+    -i, --icon=ICON              Change icon (256x256)
 ```
