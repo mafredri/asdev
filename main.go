@@ -40,6 +40,13 @@ func main() {
 
 		update     = kingpin.Command("update", "Update apps by uploading one or multiple APK(s)")
 		updateAPKs = update.Arg("APKs", "APK(s) to update").Required().ExistingFiles()
+
+		create     = kingpin.Command("create", "(NOT IMPLEMENTED) Submit a new application by uploading one or multiple APK(s)")
+		createCats = create.Flag("category", "Categorie(s) for the application").Short('c').Required().Enums(categories...)
+		createTags = create.Flag("tag", "Tag(s) for the application").Short('t').HintOptions("multimedia", "web").Required().Strings()
+		createBeta = create.Flag("beta", "Set app to beta status").Short('b').Bool()
+		createIcon = create.Flag("icon", "Change icon (256x256)").Short('i').ExistingFile()
+		createAPKs = create.Arg("APKs", "APK(s) to create").Required().ExistingFiles()
 	)
 
 	// Provide help via short flag as well.
@@ -58,6 +65,9 @@ func main() {
 		for _, c := range categories {
 			fmt.Printf(format, c, category(c).Name())
 		}
+	case create.FullCommand():
+		log.Println(*createCats, *createTags, *createBeta, *createIcon, *createAPKs)
+		fmt.Println("create is not implemented yet!")
 	case update.FullCommand():
 		if *username == "" || *password == "" {
 			fmt.Println("error: username or password is missing, use cli flag or set in environment")
