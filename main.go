@@ -19,19 +19,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type stringVar []string
-
-func (s *stringVar) String() string {
-	return fmt.Sprint(*s)
-}
-
-func (s *stringVar) Set(value string) error {
-	for _, ss := range strings.Split(value, ",") {
-		*s = append(*s, ss)
-	}
-	return nil
-}
-
 const (
 	defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 )
@@ -175,7 +162,6 @@ func abortOnDetachOrCrash(ctx context.Context, ic cdp.Inspector, abort func(err 
 			}
 			return
 		}
-		log.Println("Target crashed!")
 		abort(errors.New("target crashed"))
 	}()
 
@@ -193,7 +179,6 @@ func abortOnDetachOrCrash(ctx context.Context, ic cdp.Inspector, abort func(err 
 			}
 			return
 		}
-		log.Printf("Inspector detached: %v!", ev.Reason)
 		abort(fmt.Errorf("inspector detached: %v", ev.Reason))
 	}()
 
