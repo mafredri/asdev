@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,10 +9,10 @@ import (
 	"os/signal"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/mafredri/asdev/apkg"
 
+	"github.com/alecthomas/kingpin"
 	"github.com/mafredri/cdp"
 	"github.com/mafredri/cdp/devtool"
 	"github.com/mafredri/cdp/rpcc"
@@ -35,54 +34,59 @@ func (s *stringVar) Set(value string) error {
 
 func main() {
 	var (
-		username   = flag.String("username", "", "Username (login)")
-		password   = flag.String("password", "", "Password (login)")
-		timeout    = flag.Duration("timeout", 5*time.Minute, "Timeout for package submission")
-		verbose    = flag.Bool("v", false, "Verbose")
-		browser    = flag.String("browser", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "Path to Chrome or Chromium binary")
-		noHeadless = flag.Bool("no-headless", false, "Disable (Chrome) headless mode")
+		username = kingpin.Flag("username", "Username (for login)").
+				Short('u').
+				Envar("ASDEV_USERNAME").
+				String()
+		password = kingpin.Flag("password", "Password (for login)").
+				Short('p').
+				Envar("ASDEV_PASSWORD").
+				String()
+		browser = kingpin.Flag("browser", "Path to Chrome or Chromium binary").
+			Default("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome").
+			Envar("ASDEV_BROWSER").
+			String()
+		noHeadless = kingpin.Flag("no-headless", "Disable (Chrome) headless mode").Bool()
+		verbose    = kingpin.Flag("verbose", "Verbose mode").Short('v').Bool()
+
+		upload  = kingpin.Command("upload", "Upload one or multiple APK(s)")
+		timeout = upload.Flag("timeout", "Upload timeout").Short('t').Default("5m").Duration()
+		apkVars = upload.Arg("APKs", "APK(s) to upload").Required().ExistingFiles()
 	)
 
-	var apkVars stringVar
-	flag.Var(&apkVars, "apk", "Package apk to submit")
+	kingpin.HelpFlag.Short('h')
 
-	flag.Parse()
-
-	if *username == "" {
-		*username = os.Getenv("ASDEV_USERNAME")
-	}
-	if *password == "" {
-		*password = os.Getenv("ASDEV_PASSWORD")
-	}
-
-	if *username == "" || *password == "" {
-		fmt.Println("error: username or password is missing, use cli flag or set in environment")
-		os.Exit(1)
-	}
-
-	var apks []*apkg.File
-	for _, av := range apkVars {
-		apk, err := apkg.Open(av)
-		if err != nil {
-			fmt.Printf("error: could open apk %q: %v\n", av, err)
+	switch kingpin.Parse() {
+	case upload.FullCommand():
+		if *username == "" || *password == "" {
+			fmt.Println("error: username or password is missing, use cli flag or set in environment")
 			os.Exit(1)
 		}
-		defer apk.Close()
-		apks = append(apks, apk)
-	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-	defer cancel()
+		var apks []*apkg.File
+		for _, av := range *apkVars {
+			apk, err := apkg.Open(av)
+			if err != nil {
+				fmt.Printf("error: could open apk %q: %v\n", av, err)
+				os.Exit(1)
+			}
+			defer apk.Close()
+			apks = append(apks, apk)
+		}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		cancel()
-	}()
+		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+		defer cancel()
 
-	if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks); err != nil {
-		log.Fatal(err)
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			<-c
+			cancel()
+		}()
+
+		if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
