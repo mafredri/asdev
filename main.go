@@ -39,6 +39,10 @@ func main() {
 		showCategories = show.Command("categories", "Show all available categories")
 
 		update     = kingpin.Command("update", "Update apps by uploading one or multiple APK(s)")
+		updateCats = update.Flag("category", "(NOT IMPLEMENTED) Change categorie(s)").Short('c').Enums(categories...)
+		updateTags = update.Flag("tag", "(NOT IMPLEMENTED) Change tag(s)").Short('t').HintOptions("multimedia", "web").Strings()
+		updateBeta = update.Flag("beta", "(NOT IMPLEMENTED) Beta app").Short('b').Bool()
+		updateIcon = update.Flag("icon", "(NOT IMPLEMENTED) Change icon (256x256)").Short('i').ExistingFile()
 		updateAPKs = update.Arg("APKs", "APK(s) to update").Required().ExistingFiles()
 
 		create     = kingpin.Command("create", "(NOT IMPLEMENTED) Submit a new application by uploading one or multiple APK(s)")
@@ -84,6 +88,12 @@ func main() {
 			defer apk.Close()
 			apks = append(apks, apk)
 		}
+
+		// TODO: Implement these flags.
+		_ = updateCats
+		_ = updateTags
+		_ = updateBeta
+		_ = updateIcon
 
 		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 		defer cancel()
