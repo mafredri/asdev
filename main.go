@@ -32,20 +32,16 @@ func (s *stringVar) Set(value string) error {
 	return nil
 }
 
+const (
+	defaultBrowser = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+)
+
 func main() {
 	var (
-		username = kingpin.Flag("username", "Username (for login)").
-				Short('u').
-				Envar("ASDEV_USERNAME").
-				String()
-		password = kingpin.Flag("password", "Password (for login)").
-				Short('p').
-				Envar("ASDEV_PASSWORD").
-				String()
-		browser = kingpin.Flag("browser", "Path to Chrome or Chromium binary").
-			Default("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome").
-			Envar("ASDEV_BROWSER").
-			String()
+		username = kingpin.Flag("username", "Username (for login)").Short('u').Envar("ASDEV_USERNAME").String()
+		password = kingpin.Flag("password", "Password (for login)").Short('p').Envar("ASDEV_PASSWORD").String()
+		browser  = kingpin.Flag("browser", "Path to Chrome or Chromium binary").
+				Default(defaultBrowser).Envar("ASDEV_BROWSER").String()
 		noHeadless = kingpin.Flag("no-headless", "Disable (Chrome) headless mode").Bool()
 		verbose    = kingpin.Flag("verbose", "Verbose mode").Short('v').Bool()
 
@@ -54,6 +50,7 @@ func main() {
 		apkVars = upload.Arg("APKs", "APK(s) to upload").Required().ExistingFiles()
 	)
 
+	// Provide help via short flag as well.
 	kingpin.HelpFlag.Short('h')
 
 	switch kingpin.Parse() {
