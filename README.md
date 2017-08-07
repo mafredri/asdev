@@ -14,11 +14,11 @@ Currently `asdev` is experimental and only supports uploading APKs to update exi
 
 ## Requirements
 
-* Google Chrome or Chromium
+* [Go](https://golang.org/dl/)
+* [Google Chrome](https://www.google.com/chrome/browser/desktop/index.html) or [Chromium](https://www.chromium.org/getting-involved/download-chromium)
+    * Other browsers that support the Chrome Debugging Protocol might work as well
 
 ## Installation
-
-This tool is written in Go and requires Go to be installed (for building).
 
 ```console
 $ go get -u github.com/mafredri/asdev
@@ -26,25 +26,21 @@ $ go get -u github.com/mafredri/asdev
 
 ## Usage
 
-To upload files, a username and password must be provided (for authentication to the ASUSTOR Developer Corner).
-
-Login (and upload) via environment variables:
+The `asdev update` command is used to deploy one or more `.apk`'s to the ASUSTOR Developer Corner. For authentication, the username and password must be provided via environment variables or command line flags.
 
 ```console
 $ export ASDEV_USERNAME="my-user"
 $ export ASDEV_PASSWORD="my-password"
-$ asdev upload ./path/to/my.apk ./path/to/my-other.apk
-```
+$ asdev update ./path/to/my.apk ./path/to/my-other.apk
 
-Or provide login info via command line flags:
+OR:
 
-```console
-$ asdev --username my-user --password my-password upload ./path/to/my.apk ./path/to/my-other.apk
+$ asdev --username my-user --password my-password update ./path/to/my.apk ./path/to/my-other.apk
 ```
 
 By default Chrome is run in headless mode, if you wish to see what `asdev` is doing, you can disable headless mode with the `--no-headless` command line flag.
 
-**NOTE:** If the Chrome binary on your system exists in another location than the one expected by `asdev` (e.g. `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`), then please provide the path to the browser via the command line option `-browser`.
+**NOTE:** If you're not using macOS or using Chromium or Chrome Canary, you should provide the path to the browsers executable via the `--browser` cli flag (the environment variable `ASDEV_BROWSER` can also be used).
 
 For more information, see `--help`:
 
@@ -66,6 +62,6 @@ Commands:
   help [<command>...]
     Show help.
 
-  upload [<flags>] <APKs>...
-    Upload one or multiple APK(s)
+  update [<flags>] <APKs>...
+    Update apps by uploading one or multiple APK(s)
 ```
