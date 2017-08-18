@@ -3,12 +3,14 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/mafredri/cdp/devtool"
 	"github.com/pkg/errors"
 )
 
@@ -60,18 +62,27 @@ func startChrome(ctx context.Context, name string, tmpdir string, headless bool)
 			}
 			return nil, ctx.Err()
 		case <-time.After(50 * time.Millisecond):
-			// Probe the DevTools port file for the port number chosen by OS.
-			ps, err := ioutil.ReadFile(filepath.Join(tmpdir, devtoolsPortFile))
-			if err != nil {
-				continue
+			if c.port == 0 {
+				// Probe the DevTools port file for the port number chosen by OS.
+				ps, err := ioutil.ReadFile(filepath.Join(tmpdir, devtoolsPortFile))
+				if err != nil {
+					continue
+				}
+
+				// Filter out the debugger URL and only parse the port number.
+				ps = bytes.SplitN(ps, []byte{'\n'}, 2)[0]
+
+				c.port, err = strconv.Atoi(string(ps))
+				if err != nil {
+					// Assume file does not exist / have content yet.
+					continue
+				}
 			}
 
-			// Filter out the debugger URL and only parse the port number.
-			ps = bytes.SplitN(ps, []byte{'\n'}, 2)[0]
-
-			c.port, err = strconv.Atoi(string(ps))
+			// Make sure the DevTools API is ready.
+			devt := devtool.New(fmt.Sprintf("http://localhost:%d", c.port))
+			_, err := devt.Version(ctx)
 			if err != nil {
-				// Assume file does not exist / have content yet.
 				continue
 			}
 

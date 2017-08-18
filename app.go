@@ -101,3 +101,29 @@ func getApps(ctx context.Context, c *cdp.Client) ([]App, error) {
 	err = json.Unmarshal(eval.Result.Value, &apps)
 	return apps, err
 }
+
+func drawAppTable(apps ...App) {
+	tableHeader := []string{"Package", "Name", "Arch", "Version", "Categories", "Last update", "Status"}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(tableHeader)
+	table.SetAutoWrapText(true)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+
+	if width, _, err := terminal.GetSize(int(os.Stdin.Fd())); err == nil {
+		table.SetColWidth(width / len(tableHeader))
+	}
+
+	for _, a := range apps {
+		table.Append([]string{
+			a.Package,
+			a.Name,
+			a.Arch,
+			a.Version,
+			strings.Join(a.Categories, ", "),
+			a.LastUpdate.Format("2006-01-02 15:04:05"),
+			a.Status,
+		})
+	}
+
+	table.Render()
+}

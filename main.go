@@ -38,6 +38,8 @@ func main() {
 		show           = kingpin.Command("show", "Show additional information")
 		showCategories = show.Command("categories", "Show all available categories")
 
+		list = kingpin.Command("list", "List apps and status")
+
 		update     = kingpin.Command("update", "Update apps by uploading one or more APK(s)")
 		updateCats = update.Flag("category", "(NOT IMPLEMENTED) Change categorie(s)").Short('c').Enums(categories...)
 		updateTags = update.Flag("tag", "(NOT IMPLEMENTED) Change tag(s)").Short('t').HintOptions("multimedia", "web").Strings()
@@ -56,16 +58,6 @@ func main() {
 	// Provide help via short flag as well.
 	kingpin.HelpFlag.Short('h')
 
-	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-	defer cancel()
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		cancel()
-	}()
-
 	switch kingpin.Parse() {
 	case showCategories.FullCommand():
 		maxlen := 0
@@ -79,18 +71,57 @@ func main() {
 		for _, c := range categories {
 			fmt.Printf(format, c, category(c).Name())
 		}
-	case create.FullCommand():
-		if *username == "" || *password == "" {
-			fmt.Println("error: username or password is missing, use cli flag or set in environment")
-			os.Exit(1)
+
+	case list.FullCommand():
+		checkLogin(*username, *password)
+
+		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+		defer cancel()
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			<-c
+			cancel()
+		}()
+
+		do := func(devt *devtool.DevTools, apps ...App) error {
+			drawAppTable(apps...)
+			return nil
 		}
+		err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, nil, do)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	case create.FullCommand():
+		checkLogin(*username, *password)
+
+		_, cancel := context.WithTimeout(context.Background(), *timeout)
+		defer cancel()
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			<-c
+			cancel()
+		}()
+
 		log.Println(*createCats, *createTags, *createBeta, *createIcon, *createAPKs)
 		fmt.Println("create is not implemented yet!")
+
 	case update.FullCommand():
-		if *username == "" || *password == "" {
-			fmt.Println("error: username or password is missing, use cli flag or set in environment")
-			os.Exit(1)
-		}
+		checkLogin(*username, *password)
+
+		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+		defer cancel()
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			<-c
+			cancel()
+		}()
 
 		var apks []*apkg.File
 		for _, av := range *updateAPKs {
@@ -109,9 +140,38 @@ func main() {
 		_ = updateBeta
 		_ = updateIcon
 
-		if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks); err != nil {
+		do := func(devt *devtool.DevTools, apps ...App) error {
+			errc := make(chan chan error, len(apks))
+			for _, apk := range apks {
+				errc2 := make(chan error, 1)
+				go upload(ctx, *verbose, devt, errc2, apps, apk)
+				errc <- errc2
+			}
+			close(errc)
+
+			for e := range errc {
+				select {
+				case err := <-e:
+					if err != nil {
+						return err
+					}
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			return nil
+		}
+
+		if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks, do); err != nil {
 			log.Fatal(err)
 		}
+	}
+}
+
+func checkLogin(username, password string) {
+	if username == "" || password == "" {
+		fmt.Println("error: username or password is missing, use cli flag or set in environment")
+		os.Exit(1)
 	}
 }
 
@@ -119,7 +179,7 @@ var (
 	optionTagRe = regexp.MustCompile("</?option( [^>]+)?>")
 )
 
-func run(ctx context.Context, verbose, headless bool, chromeBin string, username, password string, apks []*apkg.File) error {
+func run(ctx context.Context, verbose, headless bool, chromeBin string, username, password string, apks []*apkg.File, do func(*devtool.DevTools, ...App) error) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -163,26 +223,7 @@ func run(ctx context.Context, verbose, headless bool, chromeBin string, username
 		return err
 	}
 
-	errc := make(chan chan error, len(apks))
-	for _, apk := range apks {
-		errc2 := make(chan error, 1)
-		go upload(ctx, verbose, devt, errc2, apps, apk)
-		errc <- errc2
-	}
-	close(errc)
-
-	for e := range errc {
-		select {
-		case err = <-e:
-			if err != nil {
-				return err
-			}
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-
-	return nil
+	return do(devt, apps...)
 }
 
 func abortOnDetachOrCrash(ctx context.Context, ic cdp.Inspector, abort func(err error)) error {
