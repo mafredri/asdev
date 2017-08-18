@@ -8,6 +8,7 @@ Currently `asdev` is experimental and only supports uploading APKs to update exi
 
 ## Features
 
+* List all apps (information and status)
 * Submit an updated APK to App Central
     * Reads changelog and description from APK and makes sure the fields are up-to-date
     * Re-applies all current app categories
