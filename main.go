@@ -56,6 +56,16 @@ func main() {
 	// Provide help via short flag as well.
 	kingpin.HelpFlag.Short('h')
 
+	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+	defer cancel()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		cancel()
+	}()
+
 	switch kingpin.Parse() {
 	case showCategories.FullCommand():
 		maxlen := 0
@@ -70,6 +80,10 @@ func main() {
 			fmt.Printf(format, c, category(c).Name())
 		}
 	case create.FullCommand():
+		if *username == "" || *password == "" {
+			fmt.Println("error: username or password is missing, use cli flag or set in environment")
+			os.Exit(1)
+		}
 		log.Println(*createCats, *createTags, *createBeta, *createIcon, *createAPKs)
 		fmt.Println("create is not implemented yet!")
 	case update.FullCommand():
@@ -94,16 +108,6 @@ func main() {
 		_ = updateTags
 		_ = updateBeta
 		_ = updateIcon
-
-		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-		defer cancel()
-
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
-		go func() {
-			<-c
-			cancel()
-		}()
 
 		if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks); err != nil {
 			log.Fatal(err)
