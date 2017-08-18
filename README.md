@@ -68,7 +68,7 @@ Commands:
 
 
   update [<flags>] <APKs>...
-    Update apps by uploading one or multiple APK(s)
+    Update apps by uploading one or more APK(s)
 
     -c, --category=CATEGORY ...  (NOT IMPLEMENTED) Change categorie(s)
     -t, --tag=TAG ...            (NOT IMPLEMENTED) Change tag(s)
@@ -76,10 +76,10 @@ Commands:
     -i, --icon=ICON              (NOT IMPLEMENTED) Change icon (256x256)
 
   create --category=CATEGORY --tag=TAG [<flags>] <APKs>...
-    (NOT IMPLEMENTED) Submit a new application by uploading one or multiple APK(s)
+    (NOT IMPLEMENTED) Submit a new application by uploading one or more APK(s)
 
-    -c, --category=CATEGORY ...  Categorie(s) for the application
-    -t, --tag=TAG ...            Tag(s) for the application
+    -c, --category=CATEGORY ...  Set categorie(s)
+    -t, --tag=TAG ...            Set tag(s)
     -b, --beta                   Set app to beta status
-    -i, --icon=ICON              Change icon (256x256)
+    -i, --icon=ICON              Set icon (256x256)
 ```

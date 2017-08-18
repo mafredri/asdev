@@ -38,18 +38,18 @@ func main() {
 		show           = kingpin.Command("show", "Show additional information")
 		showCategories = show.Command("categories", "Show all available categories")
 
-		update     = kingpin.Command("update", "Update apps by uploading one or multiple APK(s)")
+		update     = kingpin.Command("update", "Update apps by uploading one or more APK(s)")
 		updateCats = update.Flag("category", "(NOT IMPLEMENTED) Change categorie(s)").Short('c').Enums(categories...)
 		updateTags = update.Flag("tag", "(NOT IMPLEMENTED) Change tag(s)").Short('t').HintOptions("multimedia", "web").Strings()
 		updateBeta = update.Flag("beta", "(NOT IMPLEMENTED) Beta app").Short('b').Bool()
 		updateIcon = update.Flag("icon", "(NOT IMPLEMENTED) Change icon (256x256)").Short('i').ExistingFile()
 		updateAPKs = update.Arg("APKs", "APK(s) to update").Required().ExistingFiles()
 
-		create     = kingpin.Command("create", "(NOT IMPLEMENTED) Submit a new application by uploading one or multiple APK(s)")
-		createCats = create.Flag("category", "Categorie(s) for the application").Short('c').Required().Enums(categories...)
-		createTags = create.Flag("tag", "Tag(s) for the application").Short('t').HintOptions("multimedia", "web").Required().Strings()
+		create     = kingpin.Command("create", "(NOT IMPLEMENTED) Submit a new application by uploading one or more APK(s)")
+		createCats = create.Flag("category", "Set categorie(s)").Short('c').Required().Enums(categories...)
+		createTags = create.Flag("tag", "Set tag(s)").Short('t').HintOptions("multimedia", "web").Required().Strings()
 		createBeta = create.Flag("beta", "Set app to beta status").Short('b').Bool()
-		createIcon = create.Flag("icon", "Change icon (256x256)").Short('i').ExistingFile()
+		createIcon = create.Flag("icon", "Set icon (256x256)").Short('i').ExistingFile()
 		createAPKs = create.Arg("APKs", "APK(s) to create").Required().ExistingFiles()
 	)
 
