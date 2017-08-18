@@ -231,34 +231,37 @@ func abortOnDetachOrCrash(ctx context.Context, ic cdp.Inspector, abort func(err 
 	if err != nil {
 		return nil
 	}
-	go func() {
-		defer targetCrashed.Close()
-
-		_, err := targetCrashed.Recv()
-		if err != nil {
-			if cdp.ErrorCause(err) != ctx.Err() {
-				log.Printf("targetCrashed.Recv(): %v", err)
-			}
-			return
-		}
-		abort(errors.New("target crashed"))
-	}()
 
 	detached, err := ic.Detached(ctx)
 	if err != nil {
 		return nil
 	}
+
 	go func() {
+		defer targetCrashed.Close()
 		defer detached.Close()
 
-		ev, err := detached.Recv()
-		if err != nil {
-			if cdp.ErrorCause(err) != ctx.Err() {
-				log.Printf("detached.Recv(): %v", err)
+		select {
+		case <-targetCrashed.Ready():
+			_, err := targetCrashed.Recv()
+			if err != nil {
+				if cdp.ErrorCause(err) != ctx.Err() {
+					log.Printf("targetCrashed.Recv(): %v", err)
+				}
+				return
 			}
-			return
+			abort(errors.New("target crashed"))
+
+		case <-detached.Ready():
+			ev, err := detached.Recv()
+			if err != nil {
+				if cdp.ErrorCause(err) != ctx.Err() {
+					log.Printf("detached.Recv(): %v", err)
+				}
+				return
+			}
+			abort(fmt.Errorf("inspector detached: %v", ev.Reason))
 		}
-		abort(fmt.Errorf("inspector detached: %v", ev.Reason))
 	}()
 
 	return nil
