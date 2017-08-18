@@ -17,7 +17,6 @@ Currently `asdev` is experimental and only supports uploading APKs to update exi
 
 * [Go](https://golang.org/dl/)
 * [Google Chrome](https://www.google.com/chrome/browser/desktop/index.html) or [Chromium](https://www.chromium.org/getting-involved/download-chromium)
-    * Other browsers that support the Chrome Debugging Protocol might work as well
 
 ## Installation
 
