@@ -33,9 +33,9 @@
 
 [[projects]]
   name = "github.com/mafredri/cdp"
-  packages = [".","devtool","protocol","protocol/accessibility","protocol/animation","protocol/applicationcache","protocol/browser","protocol/cachestorage","protocol/console","protocol/css","protocol/database","protocol/debugger","protocol/deviceorientation","protocol/dom","protocol/domdebugger","protocol/domsnapshot","protocol/domstorage","protocol/emulation","protocol/heapprofiler","protocol/indexeddb","protocol/input","protocol/inspector","protocol/internal","protocol/io","protocol/layertree","protocol/log","protocol/memory","protocol/network","protocol/overlay","protocol/page","protocol/profiler","protocol/runtime","protocol/schema","protocol/security","protocol/serviceworker","protocol/storage","protocol/systeminfo","protocol/target","protocol/tethering","protocol/tracing","rpcc"]
-  revision = "e5aa66ea6474eb969036bf1779f6225c74ae8f96"
-  version = "v0.9.1"
+  packages = [".","devtool","protocol","protocol/accessibility","protocol/animation","protocol/applicationcache","protocol/browser","protocol/cachestorage","protocol/console","protocol/css","protocol/database","protocol/debugger","protocol/deviceorientation","protocol/dom","protocol/domdebugger","protocol/domsnapshot","protocol/domstorage","protocol/emulation","protocol/heapprofiler","protocol/indexeddb","protocol/input","protocol/inspector","protocol/internal","protocol/io","protocol/layertree","protocol/log","protocol/memory","protocol/network","protocol/overlay","protocol/page","protocol/performance","protocol/profiler","protocol/runtime","protocol/schema","protocol/security","protocol/serviceworker","protocol/storage","protocol/systeminfo","protocol/target","protocol/tethering","protocol/tracing","rpcc"]
+  revision = "1f3d5daefdb920002fe0a42791e63fcb3cec3267"
+  version = "v0.11.3"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -76,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0232f54b103695297fb7266f293db38ca9d53edf969265d2a42198079e02e433"
+  inputs-digest = "422c52bebf9eabe58e505f912a284c2ca2b48ace345ef499622f21610f640cdc"
   solver-name = "gps-cdcl"
   solver-version = 1
