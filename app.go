@@ -4,21 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/mafredri/cdp"
 	"github.com/mafredri/cdp/protocol/runtime"
+	"github.com/olekukonko/tablewriter"
 )
 
 // App represents an app in the ASUSTOR Developer Corner.
 type App struct {
-	ID         int      `json:"id"`
-	Package    string   `json:"package"`
-	Arch       string   `json:"arch"`
-	Categories []string `json:"categories"`
-	Status     string   `json:"status"`
-	Beta       bool     `json:"beta"`
+	ID         int       `json:"id"`
+	Package    string    `json:"package"`
+	Name       string    `json:"name"`
+	Arch       string    `json:"arch"`
+	Version    string    `json:"version"`
+	Categories []string  `json:"categories"`
+	LastUpdate time.Time `json:"lastUpdate"`
+	Status     string    `json:"status"`
+	Beta       bool      `json:"beta"`
 }
 
 // HasCategory returns true if the app has the category,
@@ -52,8 +59,8 @@ func (as appSlice) Find(name, arch string) (a App) {
 // Parse application data from the table.
 const jsParseApps = `
 	const selectRows = '#product-table:first-of-type tr';
-	const selectColumns = 'td:nth-child(2), td:nth-child(4), td:nth-child(7), td:nth-child(9), td:nth-child(10), a[href*="app/updateApp?id="]';
-	const colNames = ['package', 'arch', 'categories', 'lastUpdate', 'status', 'id'];
+	const selectColumns = 'td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(6), td:nth-child(7), td:nth-child(9), td:nth-child(10), a[href*="app/updateApp?id="]';
+	const colNames = ['package', 'name', 'arch', 'version', 'categories', 'lastUpdate', 'status', 'id'];
 	const zipObject = (entries, cols) => Object.assign({}, ...entries.map((v, i) => ({[cols[i]]: v})));
 
 	const apps = Array.from(document.querySelectorAll(selectRows))
@@ -69,6 +76,8 @@ const jsParseApps = `
 			const obj = zipObject(cols, colNames);
 			obj.categories = obj.categories.split('\n').map(s => s.trim()).filter(s => s);
 			obj.beta = !!td.querySelector('img[src*="beta"]');
+			// Convert to Go time format (UTC).
+			obj.lastUpdate = obj.lastUpdate.replace(' ', 'T') + 'Z';
 			return obj;
 		});
 
