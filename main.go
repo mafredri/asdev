@@ -38,7 +38,7 @@ func main() {
 		show           = kingpin.Command("show", "Show additional information")
 		showCategories = show.Command("categories", "Show all available categories")
 
-		list = kingpin.Command("list", "List apps and status")
+		list = kingpin.Command("list", "List and show status of all apps and app updates")
 
 		update     = kingpin.Command("update", "Update apps by uploading one or more APK(s)")
 		updateCats = update.Flag("category", "(NOT IMPLEMENTED) Change categorie(s)").Short('c').Enums(categories...)

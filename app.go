@@ -26,6 +26,7 @@ type App struct {
 	LastUpdate time.Time `json:"lastUpdate"`
 	Status     string    `json:"status"`
 	Beta       bool      `json:"beta"`
+	Update     *App      `json:"update"`
 }
 
 // HasCategory returns true if the app has the category,
@@ -58,28 +59,75 @@ func (as appSlice) Find(name, arch string) (a App) {
 
 // Parse application data from the table.
 const jsParseApps = `
-	const selectRows = '#product-table:first-of-type tr';
-	const selectColumns = 'td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(6), td:nth-child(7), td:nth-child(9), td:nth-child(10), a[href*="app/updateApp?id="]';
-	const colNames = ['package', 'name', 'arch', 'version', 'categories', 'lastUpdate', 'status', 'id'];
+	const appTableRows = '#product-table:first-of-type tr';
+	const appSelect = [
+		{name: 'package', sel: 'td:nth-child(2)'},
+		{name: 'name', sel: 'td:nth-child(3)'},
+		{name: 'arch', sel: 'td:nth-child(4)'},
+		{name: 'version', sel: 'td:nth-child(6)'},
+		{name: 'categories', sel: 'td:nth-child(7)'},
+		{name: 'lastUpdate', sel: 'td:nth-child(9)'},
+		{name: 'status', sel: 'td:nth-child(10)'},
+		{name: 'id', sel: 'a[href*="app/updateApp?id="]'},
+	];
+	const appSelectNames = appSelect.map(r => r.name);
+	const appSelectCols = appSelect.map(r => r.sel).join(',');
+
+	const updateTableRows = '#product-table:nth-of-type(2) tr';
+	const updateSelect = [
+		{name: 'package', sel: 'td:nth-child(2)'},
+		{name: 'name', sel: 'td:nth-child(3)'},
+		{name: 'arch', sel: 'td:nth-child(4)'},
+		{name: 'version', sel: 'td:nth-child(5)'},
+		{name: 'categories', sel: 'td:nth-child(6)'},
+		{name: 'lastUpdate', sel: 'td:nth-child(8)'},
+		{name: 'status', sel: 'td:nth-child(9)'},
+	];
+	const updateSelectNames = updateSelect.map(r => r.name);
+	const updateSelectCols = updateSelect.map(r => r.sel).join(',');
+
 	const zipObject = (entries, cols) => Object.assign({}, ...entries.map((v, i) => ({[cols[i]]: v})));
 
-	const apps = Array.from(document.querySelectorAll(selectRows))
+	function parseApp(el, select, names) {
+		const app = zipObject(columnValues(el, select), names);
+		app.categories = app.categories.split('\n').map(s => s.trim()).filter(s => s);
+		// Convert to Go time format (UTC).
+		app.lastUpdate = app.lastUpdate.replace(' ', 'T') + 'Z';
+		app.updated = !!el.querySelector('img[src*="images/forms/update.png"]');
+		app.beta = !!el.querySelector('img[src*="images/beta.jpg"]');
+		return app;
+	}
+
+	function setUpdatedApp(apps, update) {
+		const app = apps.find(app => app.updated && app.package === update.package && app.arch === update.arch);
+		if (!app) {
+			throw new Error('could not find app: ' + update.package);
+		}
+		app.update = update;
+	}
+
+	function columnValues(parent, sel) {
+		return Array.from(parent.querySelectorAll(sel))
+			.map(el => {
+				if (el.href) {
+					return parseInt(el.href.replace(/.*id=/, ''), 10);
+				}
+				if (el.src) {
+					return true;
+				}
+				return el.textContent.trim();
+			});
+	}
+
+	const apps = Array.from(document.querySelectorAll(appTableRows))
 		.slice(1)
-		.map(td => {
-			const cols = Array.from(td.querySelectorAll(selectColumns))
-				.map(el => {
-					if (el.href) {
-						return parseInt(el.href.replace(/.*id=/, ''), 10);
-					}
-					return el.textContent.trim();
-				});
-			const obj = zipObject(cols, colNames);
-			obj.categories = obj.categories.split('\n').map(s => s.trim()).filter(s => s);
-			obj.beta = !!td.querySelector('img[src*="beta"]');
-			// Convert to Go time format (UTC).
-			obj.lastUpdate = obj.lastUpdate.replace(' ', 'T') + 'Z';
-			return obj;
-		});
+		.map(td => parseApp(td, appSelectCols, appSelectNames));
+
+	// Decorate app data with upated apps.
+	Array.from(document.querySelectorAll(updateTableRows))
+		.slice(1)
+		.map(td => parseApp(td, updateSelectCols, updateSelectNames))
+		.forEach(update => setUpdatedApp(apps, update));
 
 	// Filter out the older entries if there are duplicates.
 	apps.filter(a => !apps.find(b => b !== a && a.package === b.package && a.arch === b.arch && a.lastUpdate < b.lastUpdate));
@@ -123,6 +171,17 @@ func drawAppTable(apps ...App) {
 			a.LastUpdate.Format("2006-01-02 15:04:05"),
 			a.Status,
 		})
+		if a.Update != nil {
+			table.Append([]string{
+				"",
+				a.Update.Name,
+				a.Update.Arch,
+				a.Update.Version,
+				strings.Join(a.Update.Categories, ", "),
+				a.Update.LastUpdate.Format("2006-01-02 15:04:05"),
+				a.Update.Status,
+			})
+		}
 	}
 
 	table.Render()

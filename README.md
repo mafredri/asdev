@@ -69,7 +69,7 @@ Commands:
 
 
   list
-    List apps and status
+    List and show status of all apps and app updates
 
 
   update [<flags>] <APKs>...
@@ -106,13 +106,18 @@ $ asdev list
 | go          | Go          | i386   | 1.8.3      | Utility, Framework & | 2017-08-06 16:14:23 | In Review      |
 |             |             |        |            | Library              |                     |                |
 | jackett     | Jackett     | any    | 0.7.411    | Download             | 2016-10-08 12:11:33 | Ready for sale |
+|             | Jackett     | any    | 0.7.1609   | Download             | 2017-08-06 13:54:49 | In Review      |
 | qbittorrent | qBittorrent | x86-64 | 3.3.14     | Download             | 2017-08-11 07:18:36 | Ready for sale |
 | qbittorrent | qBittorrent | arm    | 3.3.14     | Download             | 2017-08-11 07:18:54 | Ready for sale |
 | qbittorrent | qBittorrent | i386   | 3.3.14     | Download             | 2017-08-11 07:19:12 | Ready for sale |
 | radarr      | Radarr      | x86-64 | 0.2.0.453  | Download, Multimedia | 2017-03-13 21:02:51 | Ready for sale |
+|             | Radarr      | x86-64 | 0.2.0.778  | Download, Multimedia | 2017-08-06 13:01:45 | In Review      |
 | radarr      | Radarr      | i386   | 0.2.0.453  | Download, Multimedia | 2017-03-13 21:02:20 | Ready for sale |
+|             | Radarr      | i386   | 0.2.0.778  | Download, Multimedia | 2017-08-06 13:01:41 | In Review      |
 | radarr      | Radarr      | arm    | 0.2.0.453  | Download, Multimedia | 2017-03-13 17:59:53 | Ready for sale |
+|             | Radarr      | arm    | 0.2.0.778  | Download, Multimedia | 2017-08-06 12:45:39 | In Review      |
 | sonarr      | Sonarr      | arm    | 2.0.0.4645 | Download             | 2017-03-13 21:11:54 | Ready for sale |
+|             | Sonarr      | arm    | 2.0.0.4855 | Download, Multimedia | 2017-08-06 13:51:06 | In Review      |
 | sonarr      | Sonarr      | x86-64 | 2.0.0.4855 | Download, Multimedia | 2017-08-18 08:44:44 | Ready for sale |
 | sonarr      | Sonarr      | i386   | 2.0.0.4855 | Download, Multimedia | 2017-08-18 08:44:23 | Ready for sale |
 | tmux        | tmux        | arm    | 2.5.0      | Utility              | 2017-08-07 01:03:32 | In Review      |
