@@ -123,7 +123,7 @@ const jsParseApps = `
 		.slice(1)
 		.map(td => parseApp(td, appSelectCols, appSelectNames));
 
-	// Decorate app data with upated apps.
+	// Decorate app data with updated apps.
 	Array.from(document.querySelectorAll(updateTableRows))
 		.slice(1)
 		.map(td => parseApp(td, updateSelectCols, updateSelectNames))
@@ -143,6 +143,10 @@ func getApps(ctx context.Context, c *cdp.Client) ([]App, error) {
 	eval, err := c.Runtime.Evaluate(ctx, evalArgs)
 	if err != nil {
 		return nil, err
+	}
+
+	if eval.ExceptionDetails != nil {
+		return nil, eval.ExceptionDetails
 	}
 
 	var apps []App
