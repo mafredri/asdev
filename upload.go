@@ -32,14 +32,19 @@ func upload(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan
 		errc <- err
 	}()
 
-	tab, err := devt.Create(ctx)
-	if err != nil {
-		return err
-	}
-
 	conf, err := apk.Config()
 	if err != nil {
 		return errors.Wrap(err, "could read apk config")
+	}
+
+	app := appSlice(apps).Find(conf.General.Package, conf.General.Architecture)
+	if app.Update != nil {
+		return fmt.Errorf("could not update %s %s (%s): version %s is %s", app.Package, app.Version, app.Arch, app.Update.Version, app.Update.Status)
+	}
+
+	tab, err := devt.Create(ctx)
+	if err != nil {
+		return err
 	}
 
 	var opts []rpcc.DialOption
@@ -53,8 +58,6 @@ func upload(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan
 	defer conn.Close()
 
 	c := cdp.NewClient(conn)
-
-	app := appSlice(apps).Find(conf.General.Package, conf.General.Architecture)
 
 	absPath, err := filepath.Abs(apk.Path())
 	if err != nil {
