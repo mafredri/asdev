@@ -3,14 +3,11 @@
 package page
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-
 	"github.com/mafredri/cdp/protocol/network"
 )
 
-// FrameResourceTree Information about the Frame hierarchy along with their cached resources.
+// FrameResourceTree Information about the Frame hierarchy along with their
+// cached resources.
 //
 // Note: This type is experimental.
 type FrameResourceTree struct {
@@ -19,119 +16,49 @@ type FrameResourceTree struct {
 	Resources   []FrameResource     `json:"resources"`             // Information about frame resources.
 }
 
+// FrameTree Information about the Frame hierarchy.
+type FrameTree struct {
+	Frame       Frame       `json:"frame"`                 // Frame information for this tree item.
+	ChildFrames []FrameTree `json:"childFrames,omitempty"` // Child frames.
+}
+
 // ScriptIdentifier Unique script identifier.
-//
-// Note: This type is experimental.
 type ScriptIdentifier string
 
 // TransitionType Transition type.
-//
-// Note: This type is experimental.
-type TransitionType int
+type TransitionType string
 
 // TransitionType as enums.
 const (
-	TransitionTypeNotSet TransitionType = iota
-	TransitionTypeLink
-	TransitionTypeTyped
-	TransitionTypeAutoBookmark
-	TransitionTypeAutoSubframe
-	TransitionTypeManualSubframe
-	TransitionTypeGenerated
-	TransitionTypeAutoToplevel
-	TransitionTypeFormSubmit
-	TransitionTypeReload
-	TransitionTypeKeyword
-	TransitionTypeKeywordGenerated
-	TransitionTypeOther
+	TransitionTypeNotSet           TransitionType = ""
+	TransitionTypeLink             TransitionType = "link"
+	TransitionTypeTyped            TransitionType = "typed"
+	TransitionTypeAutoBookmark     TransitionType = "auto_bookmark"
+	TransitionTypeAutoSubframe     TransitionType = "auto_subframe"
+	TransitionTypeManualSubframe   TransitionType = "manual_subframe"
+	TransitionTypeGenerated        TransitionType = "generated"
+	TransitionTypeAutoToplevel     TransitionType = "auto_toplevel"
+	TransitionTypeFormSubmit       TransitionType = "form_submit"
+	TransitionTypeReload           TransitionType = "reload"
+	TransitionTypeKeyword          TransitionType = "keyword"
+	TransitionTypeKeywordGenerated TransitionType = "keyword_generated"
+	TransitionTypeOther            TransitionType = "other"
 )
 
-// Valid returns true if enum is set.
 func (e TransitionType) Valid() bool {
-	return e >= 1 && e <= 12
+	switch e {
+	case "link", "typed", "auto_bookmark", "auto_subframe", "manual_subframe", "generated", "auto_toplevel", "form_submit", "reload", "keyword", "keyword_generated", "other":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e TransitionType) String() string {
-	switch e {
-	case 0:
-		return "TransitionTypeNotSet"
-	case 1:
-		return "link"
-	case 2:
-		return "typed"
-	case 3:
-		return "auto_bookmark"
-	case 4:
-		return "auto_subframe"
-	case 5:
-		return "manual_subframe"
-	case 6:
-		return "generated"
-	case 7:
-		return "auto_toplevel"
-	case 8:
-		return "form_submit"
-	case 9:
-		return "reload"
-	case 10:
-		return "keyword"
-	case 11:
-		return "keyword_generated"
-	case 12:
-		return "other"
-	}
-	return fmt.Sprintf("TransitionType(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e TransitionType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("page.TransitionType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *TransitionType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"link\"":
-		*e = 1
-	case "\"typed\"":
-		*e = 2
-	case "\"auto_bookmark\"":
-		*e = 3
-	case "\"auto_subframe\"":
-		*e = 4
-	case "\"manual_subframe\"":
-		*e = 5
-	case "\"generated\"":
-		*e = 6
-	case "\"auto_toplevel\"":
-		*e = 7
-	case "\"form_submit\"":
-		*e = 8
-	case "\"reload\"":
-		*e = 9
-	case "\"keyword\"":
-		*e = 10
-	case "\"keyword_generated\"":
-		*e = 11
-	case "\"other\"":
-		*e = 12
-	default:
-		return fmt.Errorf("page.TransitionType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // NavigationEntry Navigation history entry.
-//
-// Note: This type is experimental.
 type NavigationEntry struct {
 	ID             int            `json:"id"`             // Unique id of the navigation history entry.
 	URL            string         `json:"url"`            // URL of the navigation history entry.
@@ -144,104 +71,41 @@ type NavigationEntry struct {
 //
 // Note: This type is experimental.
 type ScreencastFrameMetadata struct {
-	// OffsetTop Top offset in DIP.
-	//
-	// Note: This property is experimental.
-	OffsetTop float64 `json:"offsetTop"`
-	// PageScaleFactor Page scale factor.
-	//
-	// Note: This property is experimental.
-	PageScaleFactor float64 `json:"pageScaleFactor"`
-	// DeviceWidth Device screen width in DIP.
-	//
-	// Note: This property is experimental.
-	DeviceWidth float64 `json:"deviceWidth"`
-	// DeviceHeight Device screen height in DIP.
-	//
-	// Note: This property is experimental.
-	DeviceHeight float64 `json:"deviceHeight"`
-	// ScrollOffsetX Position of horizontal scroll in CSS pixels.
-	//
-	// Note: This property is experimental.
-	ScrollOffsetX float64 `json:"scrollOffsetX"`
-	// ScrollOffsetY Position of vertical scroll in CSS pixels.
-	//
-	// Note: This property is experimental.
-	ScrollOffsetY float64 `json:"scrollOffsetY"`
-	// Timestamp Frame swap timestamp.
-	//
-	// Note: This property is experimental.
-	Timestamp network.TimeSinceEpoch `json:"timestamp,omitempty"`
+	OffsetTop       float64                `json:"offsetTop"`           // Top offset in DIP.
+	PageScaleFactor float64                `json:"pageScaleFactor"`     // Page scale factor.
+	DeviceWidth     float64                `json:"deviceWidth"`         // Device screen width in DIP.
+	DeviceHeight    float64                `json:"deviceHeight"`        // Device screen height in DIP.
+	ScrollOffsetX   float64                `json:"scrollOffsetX"`       // Position of horizontal scroll in CSS pixels.
+	ScrollOffsetY   float64                `json:"scrollOffsetY"`       // Position of vertical scroll in CSS pixels.
+	Timestamp       network.TimeSinceEpoch `json:"timestamp,omitempty"` // Frame swap timestamp.
 }
 
 // DialogType Javascript dialog type.
-//
-// Note: This type is experimental.
-type DialogType int
+type DialogType string
 
 // DialogType as enums.
 const (
-	DialogTypeNotSet DialogType = iota
-	DialogTypeAlert
-	DialogTypeConfirm
-	DialogTypePrompt
-	DialogTypeBeforeunload
+	DialogTypeNotSet       DialogType = ""
+	DialogTypeAlert        DialogType = "alert"
+	DialogTypeConfirm      DialogType = "confirm"
+	DialogTypePrompt       DialogType = "prompt"
+	DialogTypeBeforeunload DialogType = "beforeunload"
 )
 
-// Valid returns true if enum is set.
 func (e DialogType) Valid() bool {
-	return e >= 1 && e <= 4
+	switch e {
+	case "alert", "confirm", "prompt", "beforeunload":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e DialogType) String() string {
-	switch e {
-	case 0:
-		return "DialogTypeNotSet"
-	case 1:
-		return "alert"
-	case 2:
-		return "confirm"
-	case 3:
-		return "prompt"
-	case 4:
-		return "beforeunload"
-	}
-	return fmt.Sprintf("DialogType(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e DialogType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("page.DialogType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *DialogType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"alert\"":
-		*e = 1
-	case "\"confirm\"":
-		*e = 2
-	case "\"prompt\"":
-		*e = 3
-	case "\"beforeunload\"":
-		*e = 4
-	default:
-		return fmt.Errorf("page.DialogType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // AppManifestError Error while paring app manifest.
-//
-// Note: This type is experimental.
 type AppManifestError struct {
 	Message  string `json:"message"`  // Error message.
 	Critical int    `json:"critical"` // If criticial, this is a non-recoverable parse error.
@@ -249,69 +113,7 @@ type AppManifestError struct {
 	Column   int    `json:"column"`   // Error column.
 }
 
-// NavigationResponse Proceed: allow the navigation; Cancel: cancel the navigation; CancelAndIgnore: cancels the navigation and makes the requester of the navigation acts like the request was never made.
-//
-// Note: This type is experimental.
-type NavigationResponse int
-
-// NavigationResponse as enums.
-const (
-	NavigationResponseNotSet NavigationResponse = iota
-	NavigationResponseProceed
-	NavigationResponseCancel
-	NavigationResponseCancelAndIgnore
-)
-
-// Valid returns true if enum is set.
-func (e NavigationResponse) Valid() bool {
-	return e >= 1 && e <= 3
-}
-
-func (e NavigationResponse) String() string {
-	switch e {
-	case 0:
-		return "NavigationResponseNotSet"
-	case 1:
-		return "Proceed"
-	case 2:
-		return "Cancel"
-	case 3:
-		return "CancelAndIgnore"
-	}
-	return fmt.Sprintf("NavigationResponse(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e NavigationResponse) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("page.NavigationResponse: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *NavigationResponse) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"Proceed\"":
-		*e = 1
-	case "\"Cancel\"":
-		*e = 2
-	case "\"CancelAndIgnore\"":
-		*e = 3
-	default:
-		return fmt.Errorf("page.NavigationResponse: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
-}
-
 // LayoutViewport Layout viewport position and dimensions.
-//
-// Note: This type is experimental.
 type LayoutViewport struct {
 	PageX        int `json:"pageX"`        // Horizontal offset relative to the document (CSS pixels).
 	PageY        int `json:"pageY"`        // Vertical offset relative to the document (CSS pixels).
@@ -320,8 +122,6 @@ type LayoutViewport struct {
 }
 
 // VisualViewport Visual viewport position, dimensions, and scale.
-//
-// Note: This type is experimental.
 type VisualViewport struct {
 	OffsetX      float64 `json:"offsetX"`      // Horizontal offset relative to the layout viewport (CSS pixels).
 	OffsetY      float64 `json:"offsetY"`      // Vertical offset relative to the layout viewport (CSS pixels).
@@ -333,8 +133,6 @@ type VisualViewport struct {
 }
 
 // Viewport Viewport for capturing screenshot.
-//
-// Note: This type is experimental.
 type Viewport struct {
 	X      float64 `json:"x"`      // X offset in CSS pixels.
 	Y      float64 `json:"y"`      // Y offset in CSS pixels

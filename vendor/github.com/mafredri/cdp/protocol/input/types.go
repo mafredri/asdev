@@ -5,22 +5,15 @@ package input
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 )
 
 // TouchPoint
-//
-// Note: This type is experimental.
 type TouchPoint struct {
-	// State State of the touch point.
-	//
-	// Values: "touchPressed", "touchReleased", "touchMoved", "touchStationary", "touchCancelled".
-	State         string   `json:"state"`
-	X             int      `json:"x"`                       // X coordinate of the event relative to the main frame's viewport.
-	Y             int      `json:"y"`                       // Y coordinate of the event relative to the main frame's viewport. 0 refers to the top of the viewport and Y increases as it proceeds towards the bottom of the viewport.
-	RadiusX       *int     `json:"radiusX,omitempty"`       // X radius of the touch area (default: 1).
-	RadiusY       *int     `json:"radiusY,omitempty"`       // Y radius of the touch area (default: 1).
+	X             float64  `json:"x"`                       // X coordinate of the event relative to the main frame's viewport in CSS pixels.
+	Y             float64  `json:"y"`                       // Y coordinate of the event relative to the main frame's viewport in CSS pixels. 0 refers to the top of the viewport and Y increases as it proceeds towards the bottom of the viewport.
+	RadiusX       *float64 `json:"radiusX,omitempty"`       // X radius of the touch area (default: 1.0).
+	RadiusY       *float64 `json:"radiusY,omitempty"`       // Y radius of the touch area (default: 1.0).
 	RotationAngle *float64 `json:"rotationAngle,omitempty"` // Rotation angle (default: 0.0).
 	Force         *float64 `json:"force,omitempty"`         // Force (default: 1.0).
 	ID            *float64 `json:"id,omitempty"`            // Identifier used to track touch sources between events, must be unique within an event.
@@ -29,61 +22,27 @@ type TouchPoint struct {
 // GestureSourceType
 //
 // Note: This type is experimental.
-type GestureSourceType int
+type GestureSourceType string
 
 // GestureSourceType as enums.
 const (
-	GestureSourceTypeNotSet GestureSourceType = iota
-	GestureSourceTypeDefault
-	GestureSourceTypeTouch
-	GestureSourceTypeMouse
+	GestureSourceTypeNotSet  GestureSourceType = ""
+	GestureSourceTypeDefault GestureSourceType = "default"
+	GestureSourceTypeTouch   GestureSourceType = "touch"
+	GestureSourceTypeMouse   GestureSourceType = "mouse"
 )
 
-// Valid returns true if enum is set.
 func (e GestureSourceType) Valid() bool {
-	return e >= 1 && e <= 3
+	switch e {
+	case "default", "touch", "mouse":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e GestureSourceType) String() string {
-	switch e {
-	case 0:
-		return "GestureSourceTypeNotSet"
-	case 1:
-		return "default"
-	case 2:
-		return "touch"
-	case 3:
-		return "mouse"
-	}
-	return fmt.Sprintf("GestureSourceType(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e GestureSourceType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("input.GestureSourceType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *GestureSourceType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"default\"":
-		*e = 1
-	case "\"touch\"":
-		*e = 2
-	case "\"mouse\"":
-		*e = 3
-	default:
-		return fmt.Errorf("input.GestureSourceType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // TimeSinceEpoch UTC time in seconds, counted from January 1, 1970.

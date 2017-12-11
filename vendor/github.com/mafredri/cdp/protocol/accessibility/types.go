@@ -4,8 +4,6 @@ package accessibility
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 
 	"github.com/mafredri/cdp/protocol/dom"
 )
@@ -14,287 +12,98 @@ import (
 type AXNodeID string
 
 // AXValueType Enum of possible property types.
-type AXValueType int
+type AXValueType string
 
 // AXValueType as enums.
 const (
-	AXValueTypeNotSet AXValueType = iota
-	AXValueTypeBoolean
-	AXValueTypeTristate
-	AXValueTypeBooleanOrUndefined
-	AXValueTypeIDRef
-	AXValueTypeIdrefList
-	AXValueTypeInteger
-	AXValueTypeNode
-	AXValueTypeNodeList
-	AXValueTypeNumber
-	AXValueTypeString
-	AXValueTypeComputedString
-	AXValueTypeToken
-	AXValueTypeTokenList
-	AXValueTypeDOMRelation
-	AXValueTypeRole
-	AXValueTypeInternalRole
-	AXValueTypeValueUndefined
+	AXValueTypeNotSet             AXValueType = ""
+	AXValueTypeBoolean            AXValueType = "boolean"
+	AXValueTypeTristate           AXValueType = "tristate"
+	AXValueTypeBooleanOrUndefined AXValueType = "booleanOrUndefined"
+	AXValueTypeIDRef              AXValueType = "idref"
+	AXValueTypeIdrefList          AXValueType = "idrefList"
+	AXValueTypeInteger            AXValueType = "integer"
+	AXValueTypeNode               AXValueType = "node"
+	AXValueTypeNodeList           AXValueType = "nodeList"
+	AXValueTypeNumber             AXValueType = "number"
+	AXValueTypeString             AXValueType = "string"
+	AXValueTypeComputedString     AXValueType = "computedString"
+	AXValueTypeToken              AXValueType = "token"
+	AXValueTypeTokenList          AXValueType = "tokenList"
+	AXValueTypeDOMRelation        AXValueType = "domRelation"
+	AXValueTypeRole               AXValueType = "role"
+	AXValueTypeInternalRole       AXValueType = "internalRole"
+	AXValueTypeValueUndefined     AXValueType = "valueUndefined"
 )
 
-// Valid returns true if enum is set.
 func (e AXValueType) Valid() bool {
-	return e >= 1 && e <= 17
+	switch e {
+	case "boolean", "tristate", "booleanOrUndefined", "idref", "idrefList", "integer", "node", "nodeList", "number", "string", "computedString", "token", "tokenList", "domRelation", "role", "internalRole", "valueUndefined":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e AXValueType) String() string {
-	switch e {
-	case 0:
-		return "AXValueTypeNotSet"
-	case 1:
-		return "boolean"
-	case 2:
-		return "tristate"
-	case 3:
-		return "booleanOrUndefined"
-	case 4:
-		return "idref"
-	case 5:
-		return "idrefList"
-	case 6:
-		return "integer"
-	case 7:
-		return "node"
-	case 8:
-		return "nodeList"
-	case 9:
-		return "number"
-	case 10:
-		return "string"
-	case 11:
-		return "computedString"
-	case 12:
-		return "token"
-	case 13:
-		return "tokenList"
-	case 14:
-		return "domRelation"
-	case 15:
-		return "role"
-	case 16:
-		return "internalRole"
-	case 17:
-		return "valueUndefined"
-	}
-	return fmt.Sprintf("AXValueType(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXValueType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXValueType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXValueType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"boolean\"":
-		*e = 1
-	case "\"tristate\"":
-		*e = 2
-	case "\"booleanOrUndefined\"":
-		*e = 3
-	case "\"idref\"":
-		*e = 4
-	case "\"idrefList\"":
-		*e = 5
-	case "\"integer\"":
-		*e = 6
-	case "\"node\"":
-		*e = 7
-	case "\"nodeList\"":
-		*e = 8
-	case "\"number\"":
-		*e = 9
-	case "\"string\"":
-		*e = 10
-	case "\"computedString\"":
-		*e = 11
-	case "\"token\"":
-		*e = 12
-	case "\"tokenList\"":
-		*e = 13
-	case "\"domRelation\"":
-		*e = 14
-	case "\"role\"":
-		*e = 15
-	case "\"internalRole\"":
-		*e = 16
-	case "\"valueUndefined\"":
-		*e = 17
-	default:
-		return fmt.Errorf("accessibility.AXValueType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // AXValueSourceType Enum of possible property sources.
-type AXValueSourceType int
+type AXValueSourceType string
 
 // AXValueSourceType as enums.
 const (
-	AXValueSourceTypeNotSet AXValueSourceType = iota
-	AXValueSourceTypeAttribute
-	AXValueSourceTypeImplicit
-	AXValueSourceTypeStyle
-	AXValueSourceTypeContents
-	AXValueSourceTypePlaceholder
-	AXValueSourceTypeRelatedElement
+	AXValueSourceTypeNotSet         AXValueSourceType = ""
+	AXValueSourceTypeAttribute      AXValueSourceType = "attribute"
+	AXValueSourceTypeImplicit       AXValueSourceType = "implicit"
+	AXValueSourceTypeStyle          AXValueSourceType = "style"
+	AXValueSourceTypeContents       AXValueSourceType = "contents"
+	AXValueSourceTypePlaceholder    AXValueSourceType = "placeholder"
+	AXValueSourceTypeRelatedElement AXValueSourceType = "relatedElement"
 )
 
-// Valid returns true if enum is set.
 func (e AXValueSourceType) Valid() bool {
-	return e >= 1 && e <= 6
+	switch e {
+	case "attribute", "implicit", "style", "contents", "placeholder", "relatedElement":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e AXValueSourceType) String() string {
-	switch e {
-	case 0:
-		return "AXValueSourceTypeNotSet"
-	case 1:
-		return "attribute"
-	case 2:
-		return "implicit"
-	case 3:
-		return "style"
-	case 4:
-		return "contents"
-	case 5:
-		return "placeholder"
-	case 6:
-		return "relatedElement"
-	}
-	return fmt.Sprintf("AXValueSourceType(%d)", e)
+	return string(e)
 }
 
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXValueSourceType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXValueSourceType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXValueSourceType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"attribute\"":
-		*e = 1
-	case "\"implicit\"":
-		*e = 2
-	case "\"style\"":
-		*e = 3
-	case "\"contents\"":
-		*e = 4
-	case "\"placeholder\"":
-		*e = 5
-	case "\"relatedElement\"":
-		*e = 6
-	default:
-		return fmt.Errorf("accessibility.AXValueSourceType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
-}
-
-// AXValueNativeSourceType Enum of possible native property sources (as a subtype of a particular AXValueSourceType).
-type AXValueNativeSourceType int
+// AXValueNativeSourceType Enum of possible native property sources (as a
+// subtype of a particular AXValueSourceType).
+type AXValueNativeSourceType string
 
 // AXValueNativeSourceType as enums.
 const (
-	AXValueNativeSourceTypeNotSet AXValueNativeSourceType = iota
-	AXValueNativeSourceTypeFigcaption
-	AXValueNativeSourceTypeLabel
-	AXValueNativeSourceTypeLabelfor
-	AXValueNativeSourceTypeLabelwrapped
-	AXValueNativeSourceTypeLegend
-	AXValueNativeSourceTypeTablecaption
-	AXValueNativeSourceTypeTitle
-	AXValueNativeSourceTypeOther
+	AXValueNativeSourceTypeNotSet       AXValueNativeSourceType = ""
+	AXValueNativeSourceTypeFigcaption   AXValueNativeSourceType = "figcaption"
+	AXValueNativeSourceTypeLabel        AXValueNativeSourceType = "label"
+	AXValueNativeSourceTypeLabelfor     AXValueNativeSourceType = "labelfor"
+	AXValueNativeSourceTypeLabelwrapped AXValueNativeSourceType = "labelwrapped"
+	AXValueNativeSourceTypeLegend       AXValueNativeSourceType = "legend"
+	AXValueNativeSourceTypeTablecaption AXValueNativeSourceType = "tablecaption"
+	AXValueNativeSourceTypeTitle        AXValueNativeSourceType = "title"
+	AXValueNativeSourceTypeOther        AXValueNativeSourceType = "other"
 )
 
-// Valid returns true if enum is set.
 func (e AXValueNativeSourceType) Valid() bool {
-	return e >= 1 && e <= 8
+	switch e {
+	case "figcaption", "label", "labelfor", "labelwrapped", "legend", "tablecaption", "title", "other":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e AXValueNativeSourceType) String() string {
-	switch e {
-	case 0:
-		return "AXValueNativeSourceTypeNotSet"
-	case 1:
-		return "figcaption"
-	case 2:
-		return "label"
-	case 3:
-		return "labelfor"
-	case 4:
-		return "labelwrapped"
-	case 5:
-		return "legend"
-	case 6:
-		return "tablecaption"
-	case 7:
-		return "title"
-	case 8:
-		return "other"
-	}
-	return fmt.Sprintf("AXValueNativeSourceType(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXValueNativeSourceType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXValueNativeSourceType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXValueNativeSourceType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"figcaption\"":
-		*e = 1
-	case "\"label\"":
-		*e = 2
-	case "\"labelfor\"":
-		*e = 3
-	case "\"labelwrapped\"":
-		*e = 4
-	case "\"legend\"":
-		*e = 5
-	case "\"tablecaption\"":
-		*e = 6
-	case "\"title\"":
-		*e = 7
-	case "\"other\"":
-		*e = 8
-	default:
-		return fmt.Errorf("accessibility.AXValueNativeSourceType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // AXValueSource A single source for a computed AX property.
@@ -319,8 +128,8 @@ type AXRelatedNode struct {
 
 // AXProperty
 type AXProperty struct {
-	Name  string  `json:"name"`  // The name of this property.
-	Value AXValue `json:"value"` // The value of this property.
+	Name  AXPropertyName `json:"name"`  // The name of this property.
+	Value AXValue        `json:"value"` // The value of this property.
 }
 
 // AXValue A single computed AX property.
@@ -331,394 +140,65 @@ type AXValue struct {
 	Sources      []AXValueSource `json:"sources,omitempty"`      // The sources which contributed to the computation of this property.
 }
 
-// AXGlobalStates States which apply to every AX node.
-type AXGlobalStates int
+// AXPropertyName Values of AXProperty name: from 'busy' to 'roledescription'
+// - states which apply to every AX node, from 'live' to 'root' - attributes
+// which apply to nodes in live regions, from 'autocomplete' to 'valuetext' -
+// attributes which apply to widgets, from 'checked' to 'selected' - states
+// which apply to widgets, from 'activedescendant' to 'owns' - relationships
+// between elements other than parent/child/sibling.
+type AXPropertyName string
 
-// AXGlobalStates as enums.
+// AXPropertyName as enums.
 const (
-	AXGlobalStatesNotSet AXGlobalStates = iota
-	AXGlobalStatesBusy
-	AXGlobalStatesDisabled
-	AXGlobalStatesHidden
-	AXGlobalStatesHiddenRoot
-	AXGlobalStatesInvalid
-	AXGlobalStatesKeyshortcuts
-	AXGlobalStatesRoledescription
+	AXPropertyNameNotSet           AXPropertyName = ""
+	AXPropertyNameBusy             AXPropertyName = "busy"
+	AXPropertyNameDisabled         AXPropertyName = "disabled"
+	AXPropertyNameHidden           AXPropertyName = "hidden"
+	AXPropertyNameHiddenRoot       AXPropertyName = "hiddenRoot"
+	AXPropertyNameInvalid          AXPropertyName = "invalid"
+	AXPropertyNameKeyshortcuts     AXPropertyName = "keyshortcuts"
+	AXPropertyNameRoledescription  AXPropertyName = "roledescription"
+	AXPropertyNameLive             AXPropertyName = "live"
+	AXPropertyNameAtomic           AXPropertyName = "atomic"
+	AXPropertyNameRelevant         AXPropertyName = "relevant"
+	AXPropertyNameRoot             AXPropertyName = "root"
+	AXPropertyNameAutocomplete     AXPropertyName = "autocomplete"
+	AXPropertyNameHaspopup         AXPropertyName = "haspopup"
+	AXPropertyNameLevel            AXPropertyName = "level"
+	AXPropertyNameMultiselectable  AXPropertyName = "multiselectable"
+	AXPropertyNameOrientation      AXPropertyName = "orientation"
+	AXPropertyNameMultiline        AXPropertyName = "multiline"
+	AXPropertyNameReadonly         AXPropertyName = "readonly"
+	AXPropertyNameRequired         AXPropertyName = "required"
+	AXPropertyNameValuemin         AXPropertyName = "valuemin"
+	AXPropertyNameValuemax         AXPropertyName = "valuemax"
+	AXPropertyNameValuetext        AXPropertyName = "valuetext"
+	AXPropertyNameChecked          AXPropertyName = "checked"
+	AXPropertyNameExpanded         AXPropertyName = "expanded"
+	AXPropertyNameModal            AXPropertyName = "modal"
+	AXPropertyNamePressed          AXPropertyName = "pressed"
+	AXPropertyNameSelected         AXPropertyName = "selected"
+	AXPropertyNameActivedescendant AXPropertyName = "activedescendant"
+	AXPropertyNameControls         AXPropertyName = "controls"
+	AXPropertyNameDescribedby      AXPropertyName = "describedby"
+	AXPropertyNameDetails          AXPropertyName = "details"
+	AXPropertyNameErrormessage     AXPropertyName = "errormessage"
+	AXPropertyNameFlowto           AXPropertyName = "flowto"
+	AXPropertyNameLabelledby       AXPropertyName = "labelledby"
+	AXPropertyNameOwns             AXPropertyName = "owns"
 )
 
-// Valid returns true if enum is set.
-func (e AXGlobalStates) Valid() bool {
-	return e >= 1 && e <= 7
-}
-
-func (e AXGlobalStates) String() string {
+func (e AXPropertyName) Valid() bool {
 	switch e {
-	case 0:
-		return "AXGlobalStatesNotSet"
-	case 1:
-		return "busy"
-	case 2:
-		return "disabled"
-	case 3:
-		return "hidden"
-	case 4:
-		return "hiddenRoot"
-	case 5:
-		return "invalid"
-	case 6:
-		return "keyshortcuts"
-	case 7:
-		return "roledescription"
-	}
-	return fmt.Sprintf("AXGlobalStates(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXGlobalStates) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXGlobalStates: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXGlobalStates) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"busy\"":
-		*e = 1
-	case "\"disabled\"":
-		*e = 2
-	case "\"hidden\"":
-		*e = 3
-	case "\"hiddenRoot\"":
-		*e = 4
-	case "\"invalid\"":
-		*e = 5
-	case "\"keyshortcuts\"":
-		*e = 6
-	case "\"roledescription\"":
-		*e = 7
+	case "busy", "disabled", "hidden", "hiddenRoot", "invalid", "keyshortcuts", "roledescription", "live", "atomic", "relevant", "root", "autocomplete", "haspopup", "level", "multiselectable", "orientation", "multiline", "readonly", "required", "valuemin", "valuemax", "valuetext", "checked", "expanded", "modal", "pressed", "selected", "activedescendant", "controls", "describedby", "details", "errormessage", "flowto", "labelledby", "owns":
+		return true
 	default:
-		return fmt.Errorf("accessibility.AXGlobalStates: UnmarshalJSON on bad input: %s", data)
+		return false
 	}
-	return nil
 }
 
-// AXLiveRegionAttributes Attributes which apply to nodes in live regions.
-type AXLiveRegionAttributes int
-
-// AXLiveRegionAttributes as enums.
-const (
-	AXLiveRegionAttributesNotSet AXLiveRegionAttributes = iota
-	AXLiveRegionAttributesLive
-	AXLiveRegionAttributesAtomic
-	AXLiveRegionAttributesRelevant
-	AXLiveRegionAttributesRoot
-)
-
-// Valid returns true if enum is set.
-func (e AXLiveRegionAttributes) Valid() bool {
-	return e >= 1 && e <= 4
-}
-
-func (e AXLiveRegionAttributes) String() string {
-	switch e {
-	case 0:
-		return "AXLiveRegionAttributesNotSet"
-	case 1:
-		return "live"
-	case 2:
-		return "atomic"
-	case 3:
-		return "relevant"
-	case 4:
-		return "root"
-	}
-	return fmt.Sprintf("AXLiveRegionAttributes(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXLiveRegionAttributes) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXLiveRegionAttributes: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXLiveRegionAttributes) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"live\"":
-		*e = 1
-	case "\"atomic\"":
-		*e = 2
-	case "\"relevant\"":
-		*e = 3
-	case "\"root\"":
-		*e = 4
-	default:
-		return fmt.Errorf("accessibility.AXLiveRegionAttributes: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
-}
-
-// AXWidgetAttributes Attributes which apply to widgets.
-type AXWidgetAttributes int
-
-// AXWidgetAttributes as enums.
-const (
-	AXWidgetAttributesNotSet AXWidgetAttributes = iota
-	AXWidgetAttributesAutocomplete
-	AXWidgetAttributesHaspopup
-	AXWidgetAttributesLevel
-	AXWidgetAttributesMultiselectable
-	AXWidgetAttributesOrientation
-	AXWidgetAttributesMultiline
-	AXWidgetAttributesReadonly
-	AXWidgetAttributesRequired
-	AXWidgetAttributesValuemin
-	AXWidgetAttributesValuemax
-	AXWidgetAttributesValuetext
-)
-
-// Valid returns true if enum is set.
-func (e AXWidgetAttributes) Valid() bool {
-	return e >= 1 && e <= 11
-}
-
-func (e AXWidgetAttributes) String() string {
-	switch e {
-	case 0:
-		return "AXWidgetAttributesNotSet"
-	case 1:
-		return "autocomplete"
-	case 2:
-		return "haspopup"
-	case 3:
-		return "level"
-	case 4:
-		return "multiselectable"
-	case 5:
-		return "orientation"
-	case 6:
-		return "multiline"
-	case 7:
-		return "readonly"
-	case 8:
-		return "required"
-	case 9:
-		return "valuemin"
-	case 10:
-		return "valuemax"
-	case 11:
-		return "valuetext"
-	}
-	return fmt.Sprintf("AXWidgetAttributes(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXWidgetAttributes) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXWidgetAttributes: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXWidgetAttributes) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"autocomplete\"":
-		*e = 1
-	case "\"haspopup\"":
-		*e = 2
-	case "\"level\"":
-		*e = 3
-	case "\"multiselectable\"":
-		*e = 4
-	case "\"orientation\"":
-		*e = 5
-	case "\"multiline\"":
-		*e = 6
-	case "\"readonly\"":
-		*e = 7
-	case "\"required\"":
-		*e = 8
-	case "\"valuemin\"":
-		*e = 9
-	case "\"valuemax\"":
-		*e = 10
-	case "\"valuetext\"":
-		*e = 11
-	default:
-		return fmt.Errorf("accessibility.AXWidgetAttributes: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
-}
-
-// AXWidgetStates States which apply to widgets.
-type AXWidgetStates int
-
-// AXWidgetStates as enums.
-const (
-	AXWidgetStatesNotSet AXWidgetStates = iota
-	AXWidgetStatesChecked
-	AXWidgetStatesExpanded
-	AXWidgetStatesModal
-	AXWidgetStatesPressed
-	AXWidgetStatesSelected
-)
-
-// Valid returns true if enum is set.
-func (e AXWidgetStates) Valid() bool {
-	return e >= 1 && e <= 5
-}
-
-func (e AXWidgetStates) String() string {
-	switch e {
-	case 0:
-		return "AXWidgetStatesNotSet"
-	case 1:
-		return "checked"
-	case 2:
-		return "expanded"
-	case 3:
-		return "modal"
-	case 4:
-		return "pressed"
-	case 5:
-		return "selected"
-	}
-	return fmt.Sprintf("AXWidgetStates(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXWidgetStates) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXWidgetStates: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXWidgetStates) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"checked\"":
-		*e = 1
-	case "\"expanded\"":
-		*e = 2
-	case "\"modal\"":
-		*e = 3
-	case "\"pressed\"":
-		*e = 4
-	case "\"selected\"":
-		*e = 5
-	default:
-		return fmt.Errorf("accessibility.AXWidgetStates: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
-}
-
-// AXRelationshipAttributes Relationships between elements other than parent/child/sibling.
-type AXRelationshipAttributes int
-
-// AXRelationshipAttributes as enums.
-const (
-	AXRelationshipAttributesNotSet AXRelationshipAttributes = iota
-	AXRelationshipAttributesActivedescendant
-	AXRelationshipAttributesControls
-	AXRelationshipAttributesDescribedby
-	AXRelationshipAttributesDetails
-	AXRelationshipAttributesErrormessage
-	AXRelationshipAttributesFlowto
-	AXRelationshipAttributesLabelledby
-	AXRelationshipAttributesOwns
-)
-
-// Valid returns true if enum is set.
-func (e AXRelationshipAttributes) Valid() bool {
-	return e >= 1 && e <= 8
-}
-
-func (e AXRelationshipAttributes) String() string {
-	switch e {
-	case 0:
-		return "AXRelationshipAttributesNotSet"
-	case 1:
-		return "activedescendant"
-	case 2:
-		return "controls"
-	case 3:
-		return "describedby"
-	case 4:
-		return "details"
-	case 5:
-		return "errormessage"
-	case 6:
-		return "flowto"
-	case 7:
-		return "labelledby"
-	case 8:
-		return "owns"
-	}
-	return fmt.Sprintf("AXRelationshipAttributes(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e AXRelationshipAttributes) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("accessibility.AXRelationshipAttributes: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *AXRelationshipAttributes) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"activedescendant\"":
-		*e = 1
-	case "\"controls\"":
-		*e = 2
-	case "\"describedby\"":
-		*e = 3
-	case "\"details\"":
-		*e = 4
-	case "\"errormessage\"":
-		*e = 5
-	case "\"flowto\"":
-		*e = 6
-	case "\"labelledby\"":
-		*e = 7
-	case "\"owns\"":
-		*e = 8
-	default:
-		return fmt.Errorf("accessibility.AXRelationshipAttributes: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+func (e AXPropertyName) String() string {
+	return string(e)
 }
 
 // AXNode A node in the accessibility tree.
@@ -726,10 +206,10 @@ type AXNode struct {
 	NodeID           AXNodeID           `json:"nodeId"`                     // Unique identifier for this node.
 	Ignored          bool               `json:"ignored"`                    // Whether this node is ignored for accessibility
 	IgnoredReasons   []AXProperty       `json:"ignoredReasons,omitempty"`   // Collection of reasons why this node is hidden.
-	Role             *AXValue           `json:"role,omitempty"`             // This Node's role, whether explicit or implicit.
-	Name             *AXValue           `json:"name,omitempty"`             // The accessible name for this Node.
-	Description      *AXValue           `json:"description,omitempty"`      // The accessible description for this Node.
-	Value            *AXValue           `json:"value,omitempty"`            // The value for this Node.
+	Role             *AXValue           `json:"role,omitempty"`             // This `Node`'s role, whether explicit or implicit.
+	Name             *AXValue           `json:"name,omitempty"`             // The accessible name for this `Node`.
+	Description      *AXValue           `json:"description,omitempty"`      // The accessible description for this `Node`.
+	Value            *AXValue           `json:"value,omitempty"`            // The value for this `Node`.
 	Properties       []AXProperty       `json:"properties,omitempty"`       // All other properties
 	ChildIDs         []AXNodeID         `json:"childIds,omitempty"`         // IDs for each of this node's child nodes.
 	BackendDOMNodeID *dom.BackendNodeID `json:"backendDOMNodeId,omitempty"` // The backend ID for the associated DOM node, if any.

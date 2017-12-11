@@ -18,16 +18,8 @@ func NewClient(conn *rpcc.Conn) *domainClient {
 	return &domainClient{conn: conn}
 }
 
-// Enable invokes the Performance method. Enable collecting and reporting metrics.
-func (d *domainClient) Enable(ctx context.Context) (err error) {
-	err = rpcc.Invoke(ctx, "Performance.enable", nil, nil, d.conn)
-	if err != nil {
-		err = &internal.OpError{Domain: "Performance", Op: "Enable", Err: err}
-	}
-	return
-}
-
-// Disable invokes the Performance method. Disable collecting and reporting metrics.
+// Disable invokes the Performance method. Disable collecting and reporting
+// metrics.
 func (d *domainClient) Disable(ctx context.Context) (err error) {
 	err = rpcc.Invoke(ctx, "Performance.disable", nil, nil, d.conn)
 	if err != nil {
@@ -36,7 +28,18 @@ func (d *domainClient) Disable(ctx context.Context) (err error) {
 	return
 }
 
-// GetMetrics invokes the Performance method. Retrieve current values of run-time metrics.
+// Enable invokes the Performance method. Enable collecting and reporting
+// metrics.
+func (d *domainClient) Enable(ctx context.Context) (err error) {
+	err = rpcc.Invoke(ctx, "Performance.enable", nil, nil, d.conn)
+	if err != nil {
+		err = &internal.OpError{Domain: "Performance", Op: "Enable", Err: err}
+	}
+	return
+}
+
+// GetMetrics invokes the Performance method. Retrieve current values of
+// run-time metrics.
 func (d *domainClient) GetMetrics(ctx context.Context) (reply *GetMetricsReply, err error) {
 	reply = new(GetMetricsReply)
 	err = rpcc.Invoke(ctx, "Performance.getMetrics", nil, reply, d.conn)
@@ -55,6 +58,9 @@ func (d *domainClient) Metrics(ctx context.Context) (MetricsClient, error) {
 }
 
 type metricsClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *metricsClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *metricsClient) Recv() (*MetricsReply, error) {
 	event := new(MetricsReply)

@@ -15,24 +15,24 @@ import (
 type ResourceType = internal.PageResourceType
 
 // ResourceType Resource type as it was perceived by the rendering engine.
-//type ResourceType int
+//type ResourceType string
 
 // ResourceType as enums.
 const (
-	ResourceTypeNotSet ResourceType = iota
-	ResourceTypeDocument
-	ResourceTypeStylesheet
-	ResourceTypeImage
-	ResourceTypeMedia
-	ResourceTypeFont
-	ResourceTypeScript
-	ResourceTypeTextTrack
-	ResourceTypeXHR
-	ResourceTypeFetch
-	ResourceTypeEventSource
-	ResourceTypeWebSocket
-	ResourceTypeManifest
-	ResourceTypeOther
+	ResourceTypeNotSet      ResourceType = ""
+	ResourceTypeDocument    ResourceType = "Document"
+	ResourceTypeStylesheet  ResourceType = "Stylesheet"
+	ResourceTypeImage       ResourceType = "Image"
+	ResourceTypeMedia       ResourceType = "Media"
+	ResourceTypeFont        ResourceType = "Font"
+	ResourceTypeScript      ResourceType = "Script"
+	ResourceTypeTextTrack   ResourceType = "TextTrack"
+	ResourceTypeXHR         ResourceType = "XHR"
+	ResourceTypeFetch       ResourceType = "Fetch"
+	ResourceTypeEventSource ResourceType = "EventSource"
+	ResourceTypeWebSocket   ResourceType = "WebSocket"
+	ResourceTypeManifest    ResourceType = "Manifest"
+	ResourceTypeOther       ResourceType = "Other"
 )
 
 // FrameID Unique frame identifier.
@@ -52,7 +52,8 @@ type Frame struct {
 	URL            string           `json:"url"`                // Frame document's URL.
 	SecurityOrigin string           `json:"securityOrigin"`     // Frame document's security origin.
 	MimeType       string           `json:"mimeType"`           // Frame document's mimeType as determined by the browser.
-	// UnreachableURL If the frame failed to load, this contains the URL that could not be loaded.
+	// UnreachableURL If the frame failed to load, this contains the URL that could not
+	// be loaded.
 	//
 	// Note: This property is experimental.
 	UnreachableURL *string `json:"unreachableUrl,omitempty"`

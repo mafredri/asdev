@@ -94,10 +94,21 @@ func (pa *Path) pop() {
 // Last returns the last PathStep in the Path.
 // If the path is empty, this returns a non-nil PathStep that reports a nil Type.
 func (pa Path) Last() PathStep {
-	if len(pa) > 0 {
-		return pa[len(pa)-1]
+	return pa.Index(-1)
+}
+
+// Index returns the ith step in the Path and supports negative indexing.
+// A negative index starts counting from the tail of the Path such that -1
+// refers to the last step, -2 refers to the second-to-last step, and so on.
+// If index is invalid, this returns a non-nil PathStep that reports a nil Type.
+func (pa Path) Index(i int) PathStep {
+	if i < 0 {
+		i = len(pa) + i
 	}
-	return pathStep{}
+	if i < 0 || i >= len(pa) {
+		return pathStep{}
+	}
+	return pa[i]
 }
 
 // String returns the simplified path to a node.
@@ -150,13 +161,12 @@ func (pa Path) GoString() string {
 			ssPost = append(ssPost, ")")
 			continue
 		case *typeAssertion:
-			// Elide type assertions immediately following a transform to
-			// prevent overly verbose path printouts.
-			// Some transforms return interface{} because of Go's lack of
-			// generics, but typically take in and return the exact same
-			// concrete type. Other times, the transform creates an anonymous
-			// struct, which will be very verbose to print.
-			if _, ok := nextStep.(*transform); ok {
+			// As a special-case, elide type assertions on anonymous types
+			// since they are typically generated dynamically and can be very
+			// verbose. For example, some transforms return interface{} because
+			// of Go's lack of generics, but typically take in and return the
+			// exact same concrete type.
+			if s.Type().PkgPath() == "" {
 				continue
 			}
 		}

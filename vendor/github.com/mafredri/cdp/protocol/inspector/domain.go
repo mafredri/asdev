@@ -18,20 +18,22 @@ func NewClient(conn *rpcc.Conn) *domainClient {
 	return &domainClient{conn: conn}
 }
 
-// Enable invokes the Inspector method. Enables inspector domain notifications.
-func (d *domainClient) Enable(ctx context.Context) (err error) {
-	err = rpcc.Invoke(ctx, "Inspector.enable", nil, nil, d.conn)
-	if err != nil {
-		err = &internal.OpError{Domain: "Inspector", Op: "Enable", Err: err}
-	}
-	return
-}
-
-// Disable invokes the Inspector method. Disables inspector domain notifications.
+// Disable invokes the Inspector method. Disables inspector domain
+// notifications.
 func (d *domainClient) Disable(ctx context.Context) (err error) {
 	err = rpcc.Invoke(ctx, "Inspector.disable", nil, nil, d.conn)
 	if err != nil {
 		err = &internal.OpError{Domain: "Inspector", Op: "Disable", Err: err}
+	}
+	return
+}
+
+// Enable invokes the Inspector method. Enables inspector domain
+// notifications.
+func (d *domainClient) Enable(ctx context.Context) (err error) {
+	err = rpcc.Invoke(ctx, "Inspector.enable", nil, nil, d.conn)
+	if err != nil {
+		err = &internal.OpError{Domain: "Inspector", Op: "Enable", Err: err}
 	}
 	return
 }
@@ -45,6 +47,9 @@ func (d *domainClient) Detached(ctx context.Context) (DetachedClient, error) {
 }
 
 type detachedClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *detachedClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *detachedClient) Recv() (*DetachedReply, error) {
 	event := new(DetachedReply)
@@ -63,6 +68,9 @@ func (d *domainClient) TargetCrashed(ctx context.Context) (TargetCrashedClient, 
 }
 
 type targetCrashedClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *targetCrashedClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *targetCrashedClient) Recv() (*TargetCrashedReply, error) {
 	event := new(TargetCrashedReply)

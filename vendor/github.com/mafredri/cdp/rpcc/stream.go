@@ -13,112 +13,74 @@ var (
 	ErrStreamClosing = errors.New("rpcc: the stream is closing")
 )
 
-type bufItem struct {
-	m    *streamMsg
-	next func()
+// message contains the invoked method name, data and next func.
+type message struct {
+	method string
+	data   []byte
+	next   func()
 }
 
-func (bi *bufItem) message() *streamMsg {
-	bi.next()
-	return bi.m
-}
-
+// messageBuffer is an unbounded channel of message.
 type messageBuffer struct {
-	c      chan *bufItem
-	mu     sync.Mutex // Protects following.
-	seq    uint
-	queue  []*bufItem
-	rc     chan struct{}
-	closed bool
+	c       chan *message
+	mu      sync.Mutex // Protects following.
+	backlog []*message
 }
 
 func newMessageBuffer() *messageBuffer {
 	return &messageBuffer{
-		c:  make(chan *bufItem, 1),
-		rc: make(chan struct{}),
+		c: make(chan *message, 1),
 	}
 }
 
 // store the message in ch, if empty, otherwise in queue.
-func (b *messageBuffer) store(m *streamMsg) {
+func (b *messageBuffer) store(m *message) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if b.seq == 0 && !b.closed {
-		// Close the ready channel
-		// until the buffer is empty.
-		close(b.rc)
-	}
-
-	b.seq++ // Keep track of pending messages.
-	seq := b.seq
-
-	// nextItem will be called when this
-	// message is fetched from the buffer.
-	nextItem := func() {
-		b.mu.Lock()
-		if b.seq == seq && !b.closed {
-			// This was the last message, open a blocking
-			// ready-channel and reset pending status.
-			b.rc = make(chan struct{})
-			b.seq = 0
-		}
-		b.mu.Unlock()
-
-		// Prime the next item (if any).
-		b.load()
-	}
-	bi := &bufItem{m: m, next: nextItem}
-
-	if len(b.queue) == 0 {
+	if len(b.backlog) == 0 {
 		select {
-		case b.c <- bi:
+		case b.c <- m:
 			return
 		default:
 		}
 	}
-	b.queue = append(b.queue, bi)
+	b.backlog = append(b.backlog, m)
 }
 
 // load moves a message from the queue into ch.
 func (b *messageBuffer) load() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if len(b.queue) > 0 {
+	if len(b.backlog) > 0 {
 		select {
-		case b.c <- b.queue[0]:
-			b.queue[0] = nil // Remove reference from underlying array.
-			b.queue = b.queue[1:]
+		case b.c <- b.backlog[0]:
+			b.backlog[0] = nil // Remove reference from underlying array.
+			b.backlog = b.backlog[1:]
 		default:
 		}
 	}
 }
 
-// ready returns a channel that is closed when the buffer is non-empty.
-func (b *messageBuffer) ready() <-chan struct{} {
+// clear removes all messages from buffer.
+func (b *messageBuffer) clear() {
 	b.mu.Lock()
-	defer b.mu.Unlock()
-	return b.rc
-}
+	backlog := b.backlog
+	b.backlog = nil
+	b.mu.Unlock()
 
-func (b *messageBuffer) get() <-chan *bufItem {
-	return b.c
-}
-
-// close ensures the ready channel is closed.
-func (b *messageBuffer) close() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.closed = true
-	if b.seq == 0 {
-		close(b.rc)
+	select {
+	case m := <-b.c:
+		m.next()
+	default:
+	}
+	for _, m := range backlog {
+		m.next()
 	}
 }
 
-// streamMsg contains the invoked method name and data.
-type streamMsg struct {
-	method string
-	data   []byte
+func (b *messageBuffer) get() <-chan *message {
+	return b.c
 }
 
 // Stream represents a stream of notifications for a certain method.
@@ -158,10 +120,18 @@ func NewStream(ctx context.Context, method string, conn *Conn) (Stream, error) {
 		ctx = context.Background()
 	}
 
-	s := new(streamClient)
-	s.userCtx = ctx
-	s.ctx, s.cancel = context.WithCancel(context.Background())
-	s.msgBuf = newMessageBuffer()
+	return newStreamClient(ctx, method, conn)
+}
+
+func newStreamClient(ctx context.Context, method string, conn *Conn) (*streamClient, error) {
+	s := &streamClient{
+		conn:   conn,
+		method: method,
+		ctx:    ctx,
+		mbuf:   newMessageBuffer(),
+		ready:  make(chan struct{}),
+		done:   make(chan struct{}),
+	}
 
 	remove, err := conn.listen(method, s)
 	if err != nil {
@@ -169,35 +139,48 @@ func NewStream(ctx context.Context, method string, conn *Conn) (Stream, error) {
 	}
 	s.remove = remove
 
-	go func() {
-		select {
-		case <-s.ctx.Done():
-		case <-conn.ctx.Done():
-			s.close(ErrConnClosing)
-		case <-ctx.Done():
-			s.close(ctx.Err())
-		}
-	}()
+	go s.watch()
 
 	return s, nil
 }
 
 type streamClient struct {
-	userCtx context.Context
-	cancel  context.CancelFunc
-	ctx     context.Context // Protects following.
-	err     error
+	// Used to sync streams.
+	conn   *Conn
+	method string
 
-	// msgBuf stores all incoming messages
+	// User provided context.
+	ctx context.Context
+
+	// mbuf stores all incoming messages
 	// until they are ready to be received.
-	msgBuf *messageBuffer
+	mbuf *messageBuffer
+
+	readyMu     sync.Mutex // Protects following.
+	ready       chan struct{}
+	seq         uint64
+	readyClosed bool
 
 	mu     sync.Mutex // Protects following.
 	remove func()     // Unsubscribes from messages.
+	done   chan struct{}
+	err    error
+}
+
+func (s *streamClient) watch() {
+	select {
+	case <-s.ctx.Done():
+		s.close(s.ctx.Err())
+	case <-s.conn.ctx.Done():
+		s.close(ErrConnClosing)
+	case <-s.done:
+	}
 }
 
 func (s *streamClient) Ready() <-chan struct{} {
-	return s.msgBuf.ready()
+	s.readyMu.Lock()
+	defer s.readyMu.Unlock()
+	return s.ready
 }
 
 func (s *streamClient) RecvMsg(m interface{}) (err error) {
@@ -214,38 +197,73 @@ func (s *streamClient) RecvMsg(m interface{}) (err error) {
 	return json.Unmarshal(msg.data, m)
 }
 
-func (s *streamClient) recv() (*streamMsg, error) {
+func (s *streamClient) recv() (m *message, err error) {
 	userCancelled := func() bool {
 		select {
-		case <-s.userCtx.Done():
+		case <-s.ctx.Done():
 			return true
 		default:
 			return false
 		}
 	}
 
-	var bi *bufItem
 	select {
-	case <-s.ctx.Done():
+	case <-s.done:
 		// Give precedence for user cancellation.
 		if userCancelled() {
-			return nil, s.userCtx.Err()
+			return nil, s.ctx.Err()
 		}
 
 		// Send all messages before returning error.
 		select {
-		case bi = <-s.msgBuf.get():
+		case m = <-s.mbuf.get():
 		default:
 			return nil, s.err
 		}
-	case bi = <-s.msgBuf.get():
+	case m = <-s.mbuf.get():
 		// Give precedence for user cancellation.
 		if userCancelled() {
-			return nil, s.userCtx.Err()
+			return nil, s.ctx.Err()
+		}
+	}
+	m.next()
+
+	return m, nil
+}
+
+func (s *streamClient) write(m message) {
+	s.readyMu.Lock()
+	defer s.readyMu.Unlock()
+
+	if s.seq == 0 && !s.readyClosed {
+		// Close the ready channel
+		// until the buffer is empty.
+		close(s.ready)
+	}
+
+	s.seq++ // Keep track of pending messages.
+	seq := s.seq
+
+	next := m.next
+	m.next = func() {
+		s.readyMu.Lock()
+		if s.seq == seq && !s.readyClosed {
+			// This was the last message, open a blocking
+			// ready-channel and reset pending status.
+			s.ready = make(chan struct{})
+			s.seq = 0
+		}
+		s.readyMu.Unlock()
+
+		// Prime the next item (if any).
+		s.mbuf.load()
+
+		if next != nil {
+			next() // Call the prior next func.
 		}
 	}
 
-	return bi.message(), nil
+	s.mbuf.store(&m)
 }
 
 func (s *streamClient) close(err error) error {
@@ -264,10 +282,15 @@ func (s *streamClient) close(err error) error {
 
 	remove()    // Unsubscribe first to prevent incoming messages.
 	s.err = err // Set err before cancel as reads are protected by context.
-	s.cancel()
+	close(s.done)
 
 	// Unblock the ready channel.
-	s.msgBuf.close()
+	s.readyMu.Lock()
+	s.readyClosed = true
+	if s.seq == 0 {
+		close(s.ready)
+	}
+	s.readyMu.Unlock()
 
 	return nil
 }
@@ -277,41 +300,45 @@ func (s *streamClient) Close() error {
 	return s.close(nil)
 }
 
-// streamClients handles multiple instances of streamClient and
-// enables sending of the same message to multiple clients.
+type streamWriter interface {
+	write(message)
+}
+
+// streamClients handles multiple streams and allows the
+// same message to be sent to one or more streamSender.
 type streamClients struct {
 	mu      sync.Mutex
 	seq     uint64
-	clients map[uint64]*streamClient
+	writers map[uint64]streamWriter
 }
 
-func newStreamService() *streamClients {
+func newStreamClients() *streamClients {
 	return &streamClients{
-		clients: make(map[uint64]*streamClient),
+		writers: make(map[uint64]streamWriter),
 	}
 }
 
-func (s *streamClients) add(client *streamClient) (seq uint64) {
+func (s *streamClients) add(w streamWriter) (seq uint64) {
 	s.mu.Lock()
 	seq = s.seq
 	s.seq++
-	s.clients[seq] = client
+	s.writers[seq] = w
 	s.mu.Unlock()
 	return seq
 }
 
 func (s *streamClients) remove(seq uint64) {
 	s.mu.Lock()
-	delete(s.clients, seq)
+	delete(s.writers, seq)
 	s.mu.Unlock()
 }
 
-func (s *streamClients) send(method string, args []byte) {
-	m := &streamMsg{method: method, data: args}
+func (s *streamClients) write(method string, args []byte) {
+	m := message{method: method, data: args}
 
 	s.mu.Lock()
-	for _, client := range s.clients {
-		client.msgBuf.store(m)
+	for _, w := range s.writers {
+		w.write(m)
 	}
 	s.mu.Unlock()
 }

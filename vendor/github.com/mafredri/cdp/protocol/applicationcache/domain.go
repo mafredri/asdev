@@ -18,17 +18,8 @@ func NewClient(conn *rpcc.Conn) *domainClient {
 	return &domainClient{conn: conn}
 }
 
-// GetFramesWithManifests invokes the ApplicationCache method. Returns array of frame identifiers with manifest urls for each frame containing a document associated with some application cache.
-func (d *domainClient) GetFramesWithManifests(ctx context.Context) (reply *GetFramesWithManifestsReply, err error) {
-	reply = new(GetFramesWithManifestsReply)
-	err = rpcc.Invoke(ctx, "ApplicationCache.getFramesWithManifests", nil, reply, d.conn)
-	if err != nil {
-		err = &internal.OpError{Domain: "ApplicationCache", Op: "GetFramesWithManifests", Err: err}
-	}
-	return
-}
-
-// Enable invokes the ApplicationCache method. Enables application cache domain notifications.
+// Enable invokes the ApplicationCache method. Enables application cache
+// domain notifications.
 func (d *domainClient) Enable(ctx context.Context) (err error) {
 	err = rpcc.Invoke(ctx, "ApplicationCache.enable", nil, nil, d.conn)
 	if err != nil {
@@ -37,21 +28,8 @@ func (d *domainClient) Enable(ctx context.Context) (err error) {
 	return
 }
 
-// GetManifestForFrame invokes the ApplicationCache method. Returns manifest URL for document in the given frame.
-func (d *domainClient) GetManifestForFrame(ctx context.Context, args *GetManifestForFrameArgs) (reply *GetManifestForFrameReply, err error) {
-	reply = new(GetManifestForFrameReply)
-	if args != nil {
-		err = rpcc.Invoke(ctx, "ApplicationCache.getManifestForFrame", args, reply, d.conn)
-	} else {
-		err = rpcc.Invoke(ctx, "ApplicationCache.getManifestForFrame", nil, reply, d.conn)
-	}
-	if err != nil {
-		err = &internal.OpError{Domain: "ApplicationCache", Op: "GetManifestForFrame", Err: err}
-	}
-	return
-}
-
-// GetApplicationCacheForFrame invokes the ApplicationCache method. Returns relevant application cache data for the document in given frame.
+// GetApplicationCacheForFrame invokes the ApplicationCache method. Returns
+// relevant application cache data for the document in given frame.
 func (d *domainClient) GetApplicationCacheForFrame(ctx context.Context, args *GetApplicationCacheForFrameArgs) (reply *GetApplicationCacheForFrameReply, err error) {
 	reply = new(GetApplicationCacheForFrameReply)
 	if args != nil {
@@ -65,6 +43,33 @@ func (d *domainClient) GetApplicationCacheForFrame(ctx context.Context, args *Ge
 	return
 }
 
+// GetFramesWithManifests invokes the ApplicationCache method. Returns array
+// of frame identifiers with manifest urls for each frame containing a document
+// associated with some application cache.
+func (d *domainClient) GetFramesWithManifests(ctx context.Context) (reply *GetFramesWithManifestsReply, err error) {
+	reply = new(GetFramesWithManifestsReply)
+	err = rpcc.Invoke(ctx, "ApplicationCache.getFramesWithManifests", nil, reply, d.conn)
+	if err != nil {
+		err = &internal.OpError{Domain: "ApplicationCache", Op: "GetFramesWithManifests", Err: err}
+	}
+	return
+}
+
+// GetManifestForFrame invokes the ApplicationCache method. Returns manifest
+// URL for document in the given frame.
+func (d *domainClient) GetManifestForFrame(ctx context.Context, args *GetManifestForFrameArgs) (reply *GetManifestForFrameReply, err error) {
+	reply = new(GetManifestForFrameReply)
+	if args != nil {
+		err = rpcc.Invoke(ctx, "ApplicationCache.getManifestForFrame", args, reply, d.conn)
+	} else {
+		err = rpcc.Invoke(ctx, "ApplicationCache.getManifestForFrame", nil, reply, d.conn)
+	}
+	if err != nil {
+		err = &internal.OpError{Domain: "ApplicationCache", Op: "GetManifestForFrame", Err: err}
+	}
+	return
+}
+
 func (d *domainClient) ApplicationCacheStatusUpdated(ctx context.Context) (StatusUpdatedClient, error) {
 	s, err := rpcc.NewStream(ctx, "ApplicationCache.applicationCacheStatusUpdated", d.conn)
 	if err != nil {
@@ -74,6 +79,9 @@ func (d *domainClient) ApplicationCacheStatusUpdated(ctx context.Context) (Statu
 }
 
 type statusUpdatedClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *statusUpdatedClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *statusUpdatedClient) Recv() (*StatusUpdatedReply, error) {
 	event := new(StatusUpdatedReply)
@@ -92,6 +100,9 @@ func (d *domainClient) NetworkStateUpdated(ctx context.Context) (NetworkStateUpd
 }
 
 type networkStateUpdatedClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *networkStateUpdatedClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *networkStateUpdatedClient) Recv() (*NetworkStateUpdatedReply, error) {
 	event := new(NetworkStateUpdatedReply)

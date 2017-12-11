@@ -18,16 +18,8 @@ func NewClient(conn *rpcc.Conn) *domainClient {
 	return &domainClient{conn: conn}
 }
 
-// Enable invokes the Database method. Enables database tracking, database events will now be delivered to the client.
-func (d *domainClient) Enable(ctx context.Context) (err error) {
-	err = rpcc.Invoke(ctx, "Database.enable", nil, nil, d.conn)
-	if err != nil {
-		err = &internal.OpError{Domain: "Database", Op: "Enable", Err: err}
-	}
-	return
-}
-
-// Disable invokes the Database method. Disables database tracking, prevents database events from being sent to the client.
+// Disable invokes the Database method. Disables database tracking, prevents
+// database events from being sent to the client.
 func (d *domainClient) Disable(ctx context.Context) (err error) {
 	err = rpcc.Invoke(ctx, "Database.disable", nil, nil, d.conn)
 	if err != nil {
@@ -36,16 +28,12 @@ func (d *domainClient) Disable(ctx context.Context) (err error) {
 	return
 }
 
-// GetDatabaseTableNames invokes the Database method.
-func (d *domainClient) GetDatabaseTableNames(ctx context.Context, args *GetDatabaseTableNamesArgs) (reply *GetDatabaseTableNamesReply, err error) {
-	reply = new(GetDatabaseTableNamesReply)
-	if args != nil {
-		err = rpcc.Invoke(ctx, "Database.getDatabaseTableNames", args, reply, d.conn)
-	} else {
-		err = rpcc.Invoke(ctx, "Database.getDatabaseTableNames", nil, reply, d.conn)
-	}
+// Enable invokes the Database method. Enables database tracking, database
+// events will now be delivered to the client.
+func (d *domainClient) Enable(ctx context.Context) (err error) {
+	err = rpcc.Invoke(ctx, "Database.enable", nil, nil, d.conn)
 	if err != nil {
-		err = &internal.OpError{Domain: "Database", Op: "GetDatabaseTableNames", Err: err}
+		err = &internal.OpError{Domain: "Database", Op: "Enable", Err: err}
 	}
 	return
 }
@@ -64,6 +52,20 @@ func (d *domainClient) ExecuteSQL(ctx context.Context, args *ExecuteSQLArgs) (re
 	return
 }
 
+// GetDatabaseTableNames invokes the Database method.
+func (d *domainClient) GetDatabaseTableNames(ctx context.Context, args *GetDatabaseTableNamesArgs) (reply *GetDatabaseTableNamesReply, err error) {
+	reply = new(GetDatabaseTableNamesReply)
+	if args != nil {
+		err = rpcc.Invoke(ctx, "Database.getDatabaseTableNames", args, reply, d.conn)
+	} else {
+		err = rpcc.Invoke(ctx, "Database.getDatabaseTableNames", nil, reply, d.conn)
+	}
+	if err != nil {
+		err = &internal.OpError{Domain: "Database", Op: "GetDatabaseTableNames", Err: err}
+	}
+	return
+}
+
 func (d *domainClient) AddDatabase(ctx context.Context) (AddDatabaseClient, error) {
 	s, err := rpcc.NewStream(ctx, "Database.addDatabase", d.conn)
 	if err != nil {
@@ -73,6 +75,9 @@ func (d *domainClient) AddDatabase(ctx context.Context) (AddDatabaseClient, erro
 }
 
 type addDatabaseClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *addDatabaseClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *addDatabaseClient) Recv() (*AddDatabaseReply, error) {
 	event := new(AddDatabaseReply)

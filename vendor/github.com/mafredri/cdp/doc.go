@@ -102,9 +102,26 @@ coordinating between multiple event handlers:
 Ready must not be called concurrently while relying on the non-blocking
 behavior of Recv.
 
+Event clients can be synchronized, relative to each other, when the order of
+events is important:
+
+	err := cdp.Sync(domContentEventFired, loadEventFired)
+	if err != nil {
+		// Handle error.
+	}
+
+Use the Ready channel to detect which synchronized event client is ready to
+Recv.
+
 */
 package cdp
 
 // Generate protcol definition using cdpgen.
 //go:generate go install github.com/mafredri/cdp/cmd/cdpgen
 //go:generate cdpgen -dest-pkg github.com/mafredri/cdp -browser-proto ./cmd/cdpgen/protodef/browser_protocol.json -js-proto ./cmd/cdpgen/protodef/js_protocol.json
+
+// Update code samples in README.
+//go:generate embedmd -w README.md
+//go:generate -command sed sed -i ""
+//go:generate sed -e "s/^package .*_test$/package main/" README.md
+//go:generate sed -e "s/^func Example\\(_[^)]*\\)*() {$/func main() {/" README.md

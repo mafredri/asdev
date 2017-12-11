@@ -5,7 +5,6 @@ package network
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/mafredri/cdp/protocol/runtime"
@@ -22,106 +21,36 @@ type RequestID string
 type InterceptionID string
 
 // ErrorReason Network level fetch failure reason.
-type ErrorReason int
+type ErrorReason string
 
 // ErrorReason as enums.
 const (
-	ErrorReasonNotSet ErrorReason = iota
-	ErrorReasonFailed
-	ErrorReasonAborted
-	ErrorReasonTimedOut
-	ErrorReasonAccessDenied
-	ErrorReasonConnectionClosed
-	ErrorReasonConnectionReset
-	ErrorReasonConnectionRefused
-	ErrorReasonConnectionAborted
-	ErrorReasonConnectionFailed
-	ErrorReasonNameNotResolved
-	ErrorReasonInternetDisconnected
-	ErrorReasonAddressUnreachable
+	ErrorReasonNotSet               ErrorReason = ""
+	ErrorReasonFailed               ErrorReason = "Failed"
+	ErrorReasonAborted              ErrorReason = "Aborted"
+	ErrorReasonTimedOut             ErrorReason = "TimedOut"
+	ErrorReasonAccessDenied         ErrorReason = "AccessDenied"
+	ErrorReasonConnectionClosed     ErrorReason = "ConnectionClosed"
+	ErrorReasonConnectionReset      ErrorReason = "ConnectionReset"
+	ErrorReasonConnectionRefused    ErrorReason = "ConnectionRefused"
+	ErrorReasonConnectionAborted    ErrorReason = "ConnectionAborted"
+	ErrorReasonConnectionFailed     ErrorReason = "ConnectionFailed"
+	ErrorReasonNameNotResolved      ErrorReason = "NameNotResolved"
+	ErrorReasonInternetDisconnected ErrorReason = "InternetDisconnected"
+	ErrorReasonAddressUnreachable   ErrorReason = "AddressUnreachable"
 )
 
-// Valid returns true if enum is set.
 func (e ErrorReason) Valid() bool {
-	return e >= 1 && e <= 12
+	switch e {
+	case "Failed", "Aborted", "TimedOut", "AccessDenied", "ConnectionClosed", "ConnectionReset", "ConnectionRefused", "ConnectionAborted", "ConnectionFailed", "NameNotResolved", "InternetDisconnected", "AddressUnreachable":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e ErrorReason) String() string {
-	switch e {
-	case 0:
-		return "ErrorReasonNotSet"
-	case 1:
-		return "Failed"
-	case 2:
-		return "Aborted"
-	case 3:
-		return "TimedOut"
-	case 4:
-		return "AccessDenied"
-	case 5:
-		return "ConnectionClosed"
-	case 6:
-		return "ConnectionReset"
-	case 7:
-		return "ConnectionRefused"
-	case 8:
-		return "ConnectionAborted"
-	case 9:
-		return "ConnectionFailed"
-	case 10:
-		return "NameNotResolved"
-	case 11:
-		return "InternetDisconnected"
-	case 12:
-		return "AddressUnreachable"
-	}
-	return fmt.Sprintf("ErrorReason(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e ErrorReason) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("network.ErrorReason: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *ErrorReason) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"Failed\"":
-		*e = 1
-	case "\"Aborted\"":
-		*e = 2
-	case "\"TimedOut\"":
-		*e = 3
-	case "\"AccessDenied\"":
-		*e = 4
-	case "\"ConnectionClosed\"":
-		*e = 5
-	case "\"ConnectionReset\"":
-		*e = 6
-	case "\"ConnectionRefused\"":
-		*e = 7
-	case "\"ConnectionAborted\"":
-		*e = 8
-	case "\"ConnectionFailed\"":
-		*e = 9
-	case "\"NameNotResolved\"":
-		*e = 10
-	case "\"InternetDisconnected\"":
-		*e = 11
-	case "\"AddressUnreachable\"":
-		*e = 12
-	default:
-		return fmt.Errorf("network.ErrorReason: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // TimeSinceEpoch UTC time in seconds, counted from January 1, 1970.
@@ -166,7 +95,8 @@ func (t *TimeSinceEpoch) UnmarshalJSON(data []byte) error {
 var _ json.Marshaler = (*TimeSinceEpoch)(nil)
 var _ json.Unmarshaler = (*TimeSinceEpoch)(nil)
 
-// MonotonicTime Monotonically increasing time in seconds since an arbitrary point in the past.
+// MonotonicTime Monotonically increasing time in seconds since an arbitrary
+// point in the past.
 type MonotonicTime float64
 
 // String calls (time.Time).String().
@@ -231,145 +161,59 @@ func (h *Headers) UnmarshalJSON(data []byte) error {
 var _ json.Marshaler = (*Headers)(nil)
 var _ json.Unmarshaler = (*Headers)(nil)
 
-// ConnectionType Loading priority of a resource request.
-type ConnectionType int
+// ConnectionType The underlying connection technology that the browser is
+// supposedly using.
+type ConnectionType string
 
 // ConnectionType as enums.
 const (
-	ConnectionTypeNotSet ConnectionType = iota
-	ConnectionTypeNone
-	ConnectionTypeCellular2g
-	ConnectionTypeCellular3g
-	ConnectionTypeCellular4g
-	ConnectionTypeBluetooth
-	ConnectionTypeEthernet
-	ConnectionTypeWifi
-	ConnectionTypeWimax
-	ConnectionTypeOther
+	ConnectionTypeNotSet     ConnectionType = ""
+	ConnectionTypeNone       ConnectionType = "none"
+	ConnectionTypeCellular2g ConnectionType = "cellular2g"
+	ConnectionTypeCellular3g ConnectionType = "cellular3g"
+	ConnectionTypeCellular4g ConnectionType = "cellular4g"
+	ConnectionTypeBluetooth  ConnectionType = "bluetooth"
+	ConnectionTypeEthernet   ConnectionType = "ethernet"
+	ConnectionTypeWifi       ConnectionType = "wifi"
+	ConnectionTypeWimax      ConnectionType = "wimax"
+	ConnectionTypeOther      ConnectionType = "other"
 )
 
-// Valid returns true if enum is set.
 func (e ConnectionType) Valid() bool {
-	return e >= 1 && e <= 9
+	switch e {
+	case "none", "cellular2g", "cellular3g", "cellular4g", "bluetooth", "ethernet", "wifi", "wimax", "other":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e ConnectionType) String() string {
-	switch e {
-	case 0:
-		return "ConnectionTypeNotSet"
-	case 1:
-		return "none"
-	case 2:
-		return "cellular2g"
-	case 3:
-		return "cellular3g"
-	case 4:
-		return "cellular4g"
-	case 5:
-		return "bluetooth"
-	case 6:
-		return "ethernet"
-	case 7:
-		return "wifi"
-	case 8:
-		return "wimax"
-	case 9:
-		return "other"
-	}
-	return fmt.Sprintf("ConnectionType(%d)", e)
+	return string(e)
 }
 
-// MarshalJSON encodes enum into a string or null when not set.
-func (e ConnectionType) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("network.ConnectionType: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *ConnectionType) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"none\"":
-		*e = 1
-	case "\"cellular2g\"":
-		*e = 2
-	case "\"cellular3g\"":
-		*e = 3
-	case "\"cellular4g\"":
-		*e = 4
-	case "\"bluetooth\"":
-		*e = 5
-	case "\"ethernet\"":
-		*e = 6
-	case "\"wifi\"":
-		*e = 7
-	case "\"wimax\"":
-		*e = 8
-	case "\"other\"":
-		*e = 9
-	default:
-		return fmt.Errorf("network.ConnectionType: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
-}
-
-// CookieSameSite Represents the cookie's 'SameSite' status: https://tools.ietf.org/html/draft-west-first-party-cookies
-type CookieSameSite int
+// CookieSameSite Represents the cookie's 'SameSite' status:
+// https://tools.ietf.org/html/draft-west-first-party-cookies
+type CookieSameSite string
 
 // CookieSameSite as enums.
 const (
-	CookieSameSiteNotSet CookieSameSite = iota
-	CookieSameSiteStrict
-	CookieSameSiteLax
+	CookieSameSiteNotSet CookieSameSite = ""
+	CookieSameSiteStrict CookieSameSite = "Strict"
+	CookieSameSiteLax    CookieSameSite = "Lax"
 )
 
-// Valid returns true if enum is set.
 func (e CookieSameSite) Valid() bool {
-	return e >= 1 && e <= 2
+	switch e {
+	case "Strict", "Lax":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e CookieSameSite) String() string {
-	switch e {
-	case 0:
-		return "CookieSameSiteNotSet"
-	case 1:
-		return "Strict"
-	case 2:
-		return "Lax"
-	}
-	return fmt.Sprintf("CookieSameSite(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e CookieSameSite) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("network.CookieSameSite: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *CookieSameSite) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"Strict\"":
-		*e = 1
-	case "\"Lax\"":
-		*e = 2
-	default:
-		return fmt.Errorf("network.CookieSameSite: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // ResourceTiming Timing information for the request.
@@ -405,71 +249,29 @@ type ResourceTiming struct {
 }
 
 // ResourcePriority Loading priority of a resource request.
-type ResourcePriority int
+type ResourcePriority string
 
 // ResourcePriority as enums.
 const (
-	ResourcePriorityNotSet ResourcePriority = iota
-	ResourcePriorityVeryLow
-	ResourcePriorityLow
-	ResourcePriorityMedium
-	ResourcePriorityHigh
-	ResourcePriorityVeryHigh
+	ResourcePriorityNotSet   ResourcePriority = ""
+	ResourcePriorityVeryLow  ResourcePriority = "VeryLow"
+	ResourcePriorityLow      ResourcePriority = "Low"
+	ResourcePriorityMedium   ResourcePriority = "Medium"
+	ResourcePriorityHigh     ResourcePriority = "High"
+	ResourcePriorityVeryHigh ResourcePriority = "VeryHigh"
 )
 
-// Valid returns true if enum is set.
 func (e ResourcePriority) Valid() bool {
-	return e >= 1 && e <= 5
+	switch e {
+	case "VeryLow", "Low", "Medium", "High", "VeryHigh":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e ResourcePriority) String() string {
-	switch e {
-	case 0:
-		return "ResourcePriorityNotSet"
-	case 1:
-		return "VeryLow"
-	case 2:
-		return "Low"
-	case 3:
-		return "Medium"
-	case 4:
-		return "High"
-	case 5:
-		return "VeryHigh"
-	}
-	return fmt.Sprintf("ResourcePriority(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e ResourcePriority) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("network.ResourcePriority: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *ResourcePriority) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"VeryLow\"":
-		*e = 1
-	case "\"Low\"":
-		*e = 2
-	case "\"Medium\"":
-		*e = 3
-	case "\"High\"":
-		*e = 4
-	case "\"VeryHigh\"":
-		*e = 5
-	default:
-		return fmt.Errorf("network.ResourcePriority: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // Request HTTP request data.
@@ -480,7 +282,8 @@ type Request struct {
 	PostData         *string                    `json:"postData,omitempty"`         // HTTP POST request data.
 	MixedContentType *security.MixedContentType `json:"mixedContentType,omitempty"` // The mixed content type of the request.
 	InitialPriority  ResourcePriority           `json:"initialPriority"`            // Priority of the resource request at the time request is sent.
-	// ReferrerPolicy The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
+	// ReferrerPolicy The referrer policy of the request, as defined in
+	// https://www.w3.org/TR/referrer-policy/
 	//
 	// Values: "unsafe-url", "no-referrer-when-downgrade", "no-referrer", "origin", "origin-when-cross-origin", "same-origin", "strict-origin", "strict-origin-when-cross-origin".
 	ReferrerPolicy string `json:"referrerPolicy"`
@@ -516,121 +319,63 @@ type SecurityDetails struct {
 }
 
 // BlockedReason The reason why request was blocked.
-//
-// Note: This type is experimental.
-type BlockedReason int
+type BlockedReason string
 
 // BlockedReason as enums.
 const (
-	BlockedReasonNotSet BlockedReason = iota
-	BlockedReasonCsp
-	BlockedReasonMixedContent
-	BlockedReasonOrigin
-	BlockedReasonInspector
-	BlockedReasonSubresourceFilter
-	BlockedReasonOther
+	BlockedReasonNotSet            BlockedReason = ""
+	BlockedReasonCsp               BlockedReason = "csp"
+	BlockedReasonMixedContent      BlockedReason = "mixed-content"
+	BlockedReasonOrigin            BlockedReason = "origin"
+	BlockedReasonInspector         BlockedReason = "inspector"
+	BlockedReasonSubresourceFilter BlockedReason = "subresource-filter"
+	BlockedReasonOther             BlockedReason = "other"
 )
 
-// Valid returns true if enum is set.
 func (e BlockedReason) Valid() bool {
-	return e >= 1 && e <= 6
+	switch e {
+	case "csp", "mixed-content", "origin", "inspector", "subresource-filter", "other":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e BlockedReason) String() string {
-	switch e {
-	case 0:
-		return "BlockedReasonNotSet"
-	case 1:
-		return "csp"
-	case 2:
-		return "mixed-content"
-	case 3:
-		return "origin"
-	case 4:
-		return "inspector"
-	case 5:
-		return "subresource-filter"
-	case 6:
-		return "other"
-	}
-	return fmt.Sprintf("BlockedReason(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e BlockedReason) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("network.BlockedReason: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *BlockedReason) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"csp\"":
-		*e = 1
-	case "\"mixed-content\"":
-		*e = 2
-	case "\"origin\"":
-		*e = 3
-	case "\"inspector\"":
-		*e = 4
-	case "\"subresource-filter\"":
-		*e = 5
-	case "\"other\"":
-		*e = 6
-	default:
-		return fmt.Errorf("network.BlockedReason: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // Response HTTP response data.
 type Response struct {
-	URL                string  `json:"url"`                          // Response URL. This URL can be different from CachedResource.url in case of redirect.
-	Status             float64 `json:"status"`                       // HTTP response status code.
-	StatusText         string  `json:"statusText"`                   // HTTP response status text.
-	Headers            Headers `json:"headers"`                      // HTTP response headers.
-	HeadersText        *string `json:"headersText,omitempty"`        // HTTP response headers text.
-	MimeType           string  `json:"mimeType"`                     // Resource mimeType as determined by the browser.
-	RequestHeaders     Headers `json:"requestHeaders,omitempty"`     // Refined HTTP request headers that were actually transmitted over the network.
-	RequestHeadersText *string `json:"requestHeadersText,omitempty"` // HTTP request headers text.
-	ConnectionReused   bool    `json:"connectionReused"`             // Specifies whether physical connection was actually reused for this request.
-	ConnectionID       float64 `json:"connectionId"`                 // Physical connection id that was actually used for this request.
-	// RemoteIPAddress Remote IP address.
-	//
-	// Note: This property is experimental.
-	RemoteIPAddress *string `json:"remoteIPAddress,omitempty"`
-	// RemotePort Remote port.
-	//
-	// Note: This property is experimental.
-	RemotePort        *int             `json:"remotePort,omitempty"`
-	FromDiskCache     *bool            `json:"fromDiskCache,omitempty"`     // Specifies that the request was served from the disk cache.
-	FromServiceWorker *bool            `json:"fromServiceWorker,omitempty"` // Specifies that the request was served from the ServiceWorker.
-	EncodedDataLength float64          `json:"encodedDataLength"`           // Total number of bytes received for this request so far.
-	Timing            *ResourceTiming  `json:"timing,omitempty"`            // Timing information for the given request.
-	Protocol          *string          `json:"protocol,omitempty"`          // Protocol used to fetch this request.
-	SecurityState     security.State   `json:"securityState"`               // Security state of the request resource.
-	SecurityDetails   *SecurityDetails `json:"securityDetails,omitempty"`   // Security details for the request.
+	URL                string           `json:"url"`                          // Response URL. This URL can be different from CachedResource.url in case of redirect.
+	Status             int              `json:"status"`                       // HTTP response status code.
+	StatusText         string           `json:"statusText"`                   // HTTP response status text.
+	Headers            Headers          `json:"headers"`                      // HTTP response headers.
+	HeadersText        *string          `json:"headersText,omitempty"`        // HTTP response headers text.
+	MimeType           string           `json:"mimeType"`                     // Resource mimeType as determined by the browser.
+	RequestHeaders     Headers          `json:"requestHeaders,omitempty"`     // Refined HTTP request headers that were actually transmitted over the network.
+	RequestHeadersText *string          `json:"requestHeadersText,omitempty"` // HTTP request headers text.
+	ConnectionReused   bool             `json:"connectionReused"`             // Specifies whether physical connection was actually reused for this request.
+	ConnectionID       float64          `json:"connectionId"`                 // Physical connection id that was actually used for this request.
+	RemoteIPAddress    *string          `json:"remoteIPAddress,omitempty"`    // Remote IP address.
+	RemotePort         *int             `json:"remotePort,omitempty"`         // Remote port.
+	FromDiskCache      *bool            `json:"fromDiskCache,omitempty"`      // Specifies that the request was served from the disk cache.
+	FromServiceWorker  *bool            `json:"fromServiceWorker,omitempty"`  // Specifies that the request was served from the ServiceWorker.
+	EncodedDataLength  float64          `json:"encodedDataLength"`            // Total number of bytes received for this request so far.
+	Timing             *ResourceTiming  `json:"timing,omitempty"`             // Timing information for the given request.
+	Protocol           *string          `json:"protocol,omitempty"`           // Protocol used to fetch this request.
+	SecurityState      security.State   `json:"securityState"`                // Security state of the request resource.
+	SecurityDetails    *SecurityDetails `json:"securityDetails,omitempty"`    // Security details for the request.
 }
 
 // WebSocketRequest WebSocket request data.
-//
-// Note: This type is experimental.
 type WebSocketRequest struct {
 	Headers Headers `json:"headers"` // HTTP request headers.
 }
 
 // WebSocketResponse WebSocket response data.
-//
-// Note: This type is experimental.
 type WebSocketResponse struct {
-	Status             float64 `json:"status"`                       // HTTP response status code.
+	Status             int     `json:"status"`                       // HTTP response status code.
 	StatusText         string  `json:"statusText"`                   // HTTP response status text.
 	Headers            Headers `json:"headers"`                      // HTTP response headers.
 	HeadersText        *string `json:"headersText,omitempty"`        // HTTP response headers text.
@@ -639,8 +384,6 @@ type WebSocketResponse struct {
 }
 
 // WebSocketFrame WebSocket frame data.
-//
-// Note: This type is experimental.
 type WebSocketFrame struct {
 	Opcode      float64 `json:"opcode"`      // WebSocket frame opcode.
 	Mask        bool    `json:"mask"`        // WebSocke frame mask.
@@ -659,8 +402,6 @@ type Initiator struct {
 }
 
 // Cookie Cookie object
-//
-// Note: This type is experimental.
 type Cookie struct {
 	Name     string         `json:"name"`               // Cookie name.
 	Value    string         `json:"value"`              // Cookie value.
@@ -675,8 +416,6 @@ type Cookie struct {
 }
 
 // CookieParam Cookie parameter object
-//
-// Note: This type is experimental.
 type CookieParam struct {
 	Name     string         `json:"name"`               // Cookie name.
 	Value    string         `json:"value"`              // Cookie value.
@@ -706,10 +445,40 @@ type AuthChallenge struct {
 //
 // Note: This type is experimental.
 type AuthChallengeResponse struct {
-	// Response The decision on what to do in response to the authorization challenge.  Default means deferring to the default behavior of the net stack, which will likely either the Cancel authentication or display a popup dialog box.
+	// Response The decision on what to do in response to the authorization
+	// challenge. Default means deferring to the default behavior of the
+	// net stack, which will likely either the Cancel authentication or
+	// display a popup dialog box.
 	//
 	// Values: "Default", "CancelAuth", "ProvideCredentials".
 	Response string  `json:"response"`
 	Username *string `json:"username,omitempty"` // The username to provide, possibly empty. Should only be set if response is ProvideCredentials.
 	Password *string `json:"password,omitempty"` // The password to provide, possibly empty. Should only be set if response is ProvideCredentials.
+}
+
+// InterceptionStage Stages of the interception to begin intercepting. Request
+// will intercept before the request is sent. Response will intercept after the
+// response is received.
+//
+// Note: This type is experimental.
+type InterceptionStage string
+
+// InterceptionStage as enums.
+const (
+	InterceptionStageNotSet          InterceptionStage = ""
+	InterceptionStageRequest         InterceptionStage = "Request"
+	InterceptionStageHeadersReceived InterceptionStage = "HeadersReceived"
+)
+
+func (e InterceptionStage) Valid() bool {
+	switch e {
+	case "Request", "HeadersReceived":
+		return true
+	default:
+		return false
+	}
+}
+
+func (e InterceptionStage) String() string {
+	return string(e)
 }

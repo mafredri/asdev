@@ -18,7 +18,18 @@ func NewClient(conn *rpcc.Conn) *domainClient {
 	return &domainClient{conn: conn}
 }
 
-// SetDeviceOrientationOverride invokes the DeviceOrientation method. Overrides the Device Orientation.
+// ClearDeviceOrientationOverride invokes the DeviceOrientation method. Clears
+// the overridden Device Orientation.
+func (d *domainClient) ClearDeviceOrientationOverride(ctx context.Context) (err error) {
+	err = rpcc.Invoke(ctx, "DeviceOrientation.clearDeviceOrientationOverride", nil, nil, d.conn)
+	if err != nil {
+		err = &internal.OpError{Domain: "DeviceOrientation", Op: "ClearDeviceOrientationOverride", Err: err}
+	}
+	return
+}
+
+// SetDeviceOrientationOverride invokes the DeviceOrientation method.
+// Overrides the Device Orientation.
 func (d *domainClient) SetDeviceOrientationOverride(ctx context.Context, args *SetDeviceOrientationOverrideArgs) (err error) {
 	if args != nil {
 		err = rpcc.Invoke(ctx, "DeviceOrientation.setDeviceOrientationOverride", args, nil, d.conn)
@@ -27,15 +38,6 @@ func (d *domainClient) SetDeviceOrientationOverride(ctx context.Context, args *S
 	}
 	if err != nil {
 		err = &internal.OpError{Domain: "DeviceOrientation", Op: "SetDeviceOrientationOverride", Err: err}
-	}
-	return
-}
-
-// ClearDeviceOrientationOverride invokes the DeviceOrientation method. Clears the overridden Device Orientation.
-func (d *domainClient) ClearDeviceOrientationOverride(ctx context.Context) (err error) {
-	err = rpcc.Invoke(ctx, "DeviceOrientation.clearDeviceOrientationOverride", nil, nil, d.conn)
-	if err != nil {
-		err = &internal.OpError{Domain: "DeviceOrientation", Op: "ClearDeviceOrientationOverride", Err: err}
 	}
 	return
 }

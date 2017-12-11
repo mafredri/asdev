@@ -21,9 +21,6 @@ var (
 
 const (
 	defaultWriteBufferSize = 4096
-
-	// Fixed header size used by gorilla/websocket.
-	websocketMaxHeaderSize = 2 + 8 + 4
 )
 
 // DialOption represents a dial option passed to Dial.
@@ -119,17 +116,17 @@ func DialContext(ctx context.Context, target string, opts ...DialOption) (conn *
 				ws.WriteBufferSize = defaultWriteBufferSize
 			}
 
-			// Base writeLimit on the buffer size allocated by the
-			// websocket package, we assume a message of this size
-			// is fragmented and subtract one.
-			writeLimit := ws.WriteBufferSize + websocketMaxHeaderSize - 1
-
 			// Set NetDial to dial with context, this action will
 			// override the HandshakeTimeout setting.
 			ws.NetDial = func(network, addr string) (net.Conn, error) {
 				conn, err := (&net.Dialer{}).DialContext(ctx, network, addr)
+				// Use writeLimiter to avoid writing fragmented
+				// websocket messages. We're not accounting for
+				// the header length here because it varies, as
+				// a result we might block some valid writes
+				// that are a few bytes too large.
 				return &writeLimiter{
-					limit: writeLimit,
+					limit: ws.WriteBufferSize,
 					Conn:  conn,
 				}, err
 			}
@@ -410,7 +407,7 @@ func (c *Conn) notify(method string, data []byte) {
 	c.streamMu.Lock()
 	stream := c.streams[method]
 	if stream != nil {
-		stream.send(method, data)
+		stream.write(method, data)
 	}
 	c.streamMu.Unlock()
 }
@@ -418,7 +415,7 @@ func (c *Conn) notify(method string, data []byte) {
 // listen registers a new stream listener (chan) for the RPC notification
 // method. Returns a function for removing the listener. Error if the
 // connection is closed.
-func (c *Conn) listen(method string, client *streamClient) (func(), error) {
+func (c *Conn) listen(method string, w streamWriter) (func(), error) {
 	c.streamMu.Lock()
 	defer c.streamMu.Unlock()
 
@@ -428,10 +425,10 @@ func (c *Conn) listen(method string, client *streamClient) (func(), error) {
 
 	stream, ok := c.streams[method]
 	if !ok {
-		stream = newStreamService()
+		stream = newStreamClients()
 		c.streams[method] = stream
 	}
-	seq := stream.add(client)
+	seq := stream.add(w)
 
 	return func() { stream.remove(seq) }, nil
 }

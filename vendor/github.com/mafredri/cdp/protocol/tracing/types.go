@@ -7,7 +7,8 @@ import (
 	"errors"
 )
 
-// MemoryDumpConfig Configuration for memory dump. Used only when "memory-infra" category is enabled.
+// MemoryDumpConfig Configuration for memory dump. Used only when
+// "memory-infra" category is enabled.
 type MemoryDumpConfig []byte
 
 // MarshalJSON copies behavior of json.RawMessage.
@@ -43,4 +44,27 @@ type TraceConfig struct {
 	ExcludedCategories   []string         `json:"excludedCategories,omitempty"`   // Excluded category filters.
 	SyntheticDelays      []string         `json:"syntheticDelays,omitempty"`      // Configuration to synthesize the delays in tracing.
 	MemoryDumpConfig     MemoryDumpConfig `json:"memoryDumpConfig,omitempty"`     // Configuration for memory dump triggers. Used only when "memory-infra" category is enabled.
+}
+
+// StreamCompression Compression type to use for traces returned via streams.
+type StreamCompression string
+
+// StreamCompression as enums.
+const (
+	StreamCompressionNotSet StreamCompression = ""
+	StreamCompressionNone   StreamCompression = "none"
+	StreamCompressionGzip   StreamCompression = "gzip"
+)
+
+func (e StreamCompression) Valid() bool {
+	switch e {
+	case "none", "gzip":
+		return true
+	default:
+		return false
+	}
+}
+
+func (e StreamCompression) String() string {
+	return string(e)
 }

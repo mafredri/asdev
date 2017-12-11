@@ -6,18 +6,8 @@ import (
 	"github.com/mafredri/cdp/rpcc"
 )
 
-// MediaQueryResultChangedClient is a client for MediaQueryResultChanged events. Fires whenever a MediaQuery result changes (for example, after a browser window has been resized.) The current implementation considers only viewport-dependent media features.
-type MediaQueryResultChangedClient interface {
-	// Recv calls RecvMsg on rpcc.Stream, blocks until the event is
-	// triggered, context canceled or connection closed.
-	Recv() (*MediaQueryResultChangedReply, error)
-	rpcc.Stream
-}
-
-// MediaQueryResultChangedReply is the reply for MediaQueryResultChanged events.
-type MediaQueryResultChangedReply struct{}
-
-// FontsUpdatedClient is a client for FontsUpdated events. Fires whenever a web font gets loaded.
+// FontsUpdatedClient is a client for FontsUpdated events. Fires whenever a
+// web font gets loaded.
 type FontsUpdatedClient interface {
 	// Recv calls RecvMsg on rpcc.Stream, blocks until the event is
 	// triggered, context canceled or connection closed.
@@ -26,22 +16,26 @@ type FontsUpdatedClient interface {
 }
 
 // FontsUpdatedReply is the reply for FontsUpdated events.
-type FontsUpdatedReply struct{}
+type FontsUpdatedReply struct {
+}
 
-// StyleSheetChangedClient is a client for StyleSheetChanged events. Fired whenever a stylesheet is changed as a result of the client operation.
-type StyleSheetChangedClient interface {
+// MediaQueryResultChangedClient is a client for MediaQueryResultChanged events.
+// Fires whenever a MediaQuery result changes (for example, after a browser
+// window has been resized.) The current implementation considers only
+// viewport-dependent media features.
+type MediaQueryResultChangedClient interface {
 	// Recv calls RecvMsg on rpcc.Stream, blocks until the event is
 	// triggered, context canceled or connection closed.
-	Recv() (*StyleSheetChangedReply, error)
+	Recv() (*MediaQueryResultChangedReply, error)
 	rpcc.Stream
 }
 
-// StyleSheetChangedReply is the reply for StyleSheetChanged events.
-type StyleSheetChangedReply struct {
-	StyleSheetID StyleSheetID `json:"styleSheetId"` // No description.
+// MediaQueryResultChangedReply is the reply for MediaQueryResultChanged events.
+type MediaQueryResultChangedReply struct {
 }
 
-// StyleSheetAddedClient is a client for StyleSheetAdded events. Fired whenever an active document stylesheet is added.
+// StyleSheetAddedClient is a client for StyleSheetAdded events. Fired
+// whenever an active document stylesheet is added.
 type StyleSheetAddedClient interface {
 	// Recv calls RecvMsg on rpcc.Stream, blocks until the event is
 	// triggered, context canceled or connection closed.
@@ -54,7 +48,22 @@ type StyleSheetAddedReply struct {
 	Header StyleSheetHeader `json:"header"` // Added stylesheet metainfo.
 }
 
-// StyleSheetRemovedClient is a client for StyleSheetRemoved events. Fired whenever an active document stylesheet is removed.
+// StyleSheetChangedClient is a client for StyleSheetChanged events. Fired
+// whenever a stylesheet is changed as a result of the client operation.
+type StyleSheetChangedClient interface {
+	// Recv calls RecvMsg on rpcc.Stream, blocks until the event is
+	// triggered, context canceled or connection closed.
+	Recv() (*StyleSheetChangedReply, error)
+	rpcc.Stream
+}
+
+// StyleSheetChangedReply is the reply for StyleSheetChanged events.
+type StyleSheetChangedReply struct {
+	StyleSheetID StyleSheetID `json:"styleSheetId"` // No description.
+}
+
+// StyleSheetRemovedClient is a client for StyleSheetRemoved events. Fired
+// whenever an active document stylesheet is removed.
 type StyleSheetRemovedClient interface {
 	// Recv calls RecvMsg on rpcc.Stream, blocks until the event is
 	// triggered, context canceled or connection closed.

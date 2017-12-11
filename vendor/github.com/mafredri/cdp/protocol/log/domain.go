@@ -10,7 +10,8 @@ import (
 	"github.com/mafredri/cdp/rpcc"
 )
 
-// domainClient is a client for the Log domain. Provides access to log entries.
+// domainClient is a client for the Log domain. Provides access to log
+// entries.
 type domainClient struct{ conn *rpcc.Conn }
 
 // NewClient returns a client for the Log domain with the connection set to conn.
@@ -18,16 +19,17 @@ func NewClient(conn *rpcc.Conn) *domainClient {
 	return &domainClient{conn: conn}
 }
 
-// Enable invokes the Log method. Enables log domain, sends the entries collected so far to the client by means of the entryAdded notification.
-func (d *domainClient) Enable(ctx context.Context) (err error) {
-	err = rpcc.Invoke(ctx, "Log.enable", nil, nil, d.conn)
+// Clear invokes the Log method. Clears the log.
+func (d *domainClient) Clear(ctx context.Context) (err error) {
+	err = rpcc.Invoke(ctx, "Log.clear", nil, nil, d.conn)
 	if err != nil {
-		err = &internal.OpError{Domain: "Log", Op: "Enable", Err: err}
+		err = &internal.OpError{Domain: "Log", Op: "Clear", Err: err}
 	}
 	return
 }
 
-// Disable invokes the Log method. Disables log domain, prevents further log entries from being reported to the client.
+// Disable invokes the Log method. Disables log domain, prevents further log
+// entries from being reported to the client.
 func (d *domainClient) Disable(ctx context.Context) (err error) {
 	err = rpcc.Invoke(ctx, "Log.disable", nil, nil, d.conn)
 	if err != nil {
@@ -36,11 +38,12 @@ func (d *domainClient) Disable(ctx context.Context) (err error) {
 	return
 }
 
-// Clear invokes the Log method. Clears the log.
-func (d *domainClient) Clear(ctx context.Context) (err error) {
-	err = rpcc.Invoke(ctx, "Log.clear", nil, nil, d.conn)
+// Enable invokes the Log method. Enables log domain, sends the entries
+// collected so far to the client by means of the `entryAdded` notification.
+func (d *domainClient) Enable(ctx context.Context) (err error) {
+	err = rpcc.Invoke(ctx, "Log.enable", nil, nil, d.conn)
 	if err != nil {
-		err = &internal.OpError{Domain: "Log", Op: "Clear", Err: err}
+		err = &internal.OpError{Domain: "Log", Op: "Enable", Err: err}
 	}
 	return
 }
@@ -76,6 +79,9 @@ func (d *domainClient) EntryAdded(ctx context.Context) (EntryAddedClient, error)
 }
 
 type entryAddedClient struct{ rpcc.Stream }
+
+// GetStream returns the original Stream for use with cdp.Sync.
+func (c *entryAddedClient) GetStream() rpcc.Stream { return c.Stream }
 
 func (c *entryAddedClient) Recv() (*EntryAddedReply, error) {
 	event := new(EntryAddedReply)

@@ -3,77 +3,38 @@
 package css
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-
 	"github.com/mafredri/cdp/protocol/dom"
 )
 
 // StyleSheetID
 type StyleSheetID string
 
-// StyleSheetOrigin Stylesheet type: "injected" for stylesheets injected via extension, "user-agent" for user-agent stylesheets, "inspector" for stylesheets created by the inspector (i.e. those holding the "via inspector" rules), "regular" for regular stylesheets.
-type StyleSheetOrigin int
+// StyleSheetOrigin Stylesheet type: "injected" for stylesheets injected via
+// extension, "user-agent" for user-agent stylesheets, "inspector" for
+// stylesheets created by the inspector (i.e. those holding the "via inspector"
+// rules), "regular" for regular stylesheets.
+type StyleSheetOrigin string
 
 // StyleSheetOrigin as enums.
 const (
-	StyleSheetOriginNotSet StyleSheetOrigin = iota
-	StyleSheetOriginInjected
-	StyleSheetOriginUserAgent
-	StyleSheetOriginInspector
-	StyleSheetOriginRegular
+	StyleSheetOriginNotSet    StyleSheetOrigin = ""
+	StyleSheetOriginInjected  StyleSheetOrigin = "injected"
+	StyleSheetOriginUserAgent StyleSheetOrigin = "user-agent"
+	StyleSheetOriginInspector StyleSheetOrigin = "inspector"
+	StyleSheetOriginRegular   StyleSheetOrigin = "regular"
 )
 
-// Valid returns true if enum is set.
 func (e StyleSheetOrigin) Valid() bool {
-	return e >= 1 && e <= 4
+	switch e {
+	case "injected", "user-agent", "inspector", "regular":
+		return true
+	default:
+		return false
+	}
 }
 
 func (e StyleSheetOrigin) String() string {
-	switch e {
-	case 0:
-		return "StyleSheetOriginNotSet"
-	case 1:
-		return "injected"
-	case 2:
-		return "user-agent"
-	case 3:
-		return "inspector"
-	case 4:
-		return "regular"
-	}
-	return fmt.Sprintf("StyleSheetOrigin(%d)", e)
-}
-
-// MarshalJSON encodes enum into a string or null when not set.
-func (e StyleSheetOrigin) MarshalJSON() ([]byte, error) {
-	if e == 0 {
-		return []byte("null"), nil
-	}
-	if !e.Valid() {
-		return nil, errors.New("css.StyleSheetOrigin: MarshalJSON on bad enum value: " + e.String())
-	}
-	return json.Marshal(e.String())
-}
-
-// UnmarshalJSON decodes a string value into a enum.
-func (e *StyleSheetOrigin) UnmarshalJSON(data []byte) error {
-	switch string(data) {
-	case "null":
-		*e = 0
-	case "\"injected\"":
-		*e = 1
-	case "\"user-agent\"":
-		*e = 2
-	case "\"inspector\"":
-		*e = 3
-	case "\"regular\"":
-		*e = 4
-	default:
-		return fmt.Errorf("css.StyleSheetOrigin: UnmarshalJSON on bad input: %s", data)
-	}
-	return nil
+	return string(e)
 }
 
 // PseudoElementMatches CSS rule collection for a single pseudo style.
@@ -94,7 +55,8 @@ type RuleMatch struct {
 	MatchingSelectors []int `json:"matchingSelectors"` // Matching selector indices in the rule's selectorList selectors (0-based).
 }
 
-// Value Data for a simple selector (these are delimited by commas in a selector list).
+// Value Data for a simple selector (these are delimited by commas in a
+// selector list).
 type Value struct {
 	Text  string       `json:"text"`            // Value text.
 	Range *SourceRange `json:"range,omitempty"` // Value range in the underlying resource (if available).
@@ -116,8 +78,6 @@ type Rule struct {
 }
 
 // RuleUsage CSS coverage information.
-//
-// Note: This type is experimental.
 type RuleUsage struct {
 	StyleSheetID StyleSheetID `json:"styleSheetId"` // The css style sheet identifier (absent for user agent stylesheet and user-specified stylesheet rules) this rule came from.
 	StartOffset  float64      `json:"startOffset"`  // Offset of the start of the rule (including selector) from the beginning of the stylesheet.
@@ -137,7 +97,7 @@ type SourceRange struct {
 type ShorthandEntry struct {
 	Name      string `json:"name"`                // Shorthand name.
 	Value     string `json:"value"`               // Shorthand value.
-	Important *bool  `json:"important,omitempty"` // Whether the property has "!important" annotation (implies false if absent).
+	Important *bool  `json:"important,omitempty"` // Whether the property has "!important" annotation (implies `false` if absent).
 }
 
 // ComputedStyleProperty
@@ -159,10 +119,10 @@ type Style struct {
 type Property struct {
 	Name      string       `json:"name"`                // The property name.
 	Value     string       `json:"value"`               // The property value.
-	Important *bool        `json:"important,omitempty"` // Whether the property has "!important" annotation (implies false if absent).
-	Implicit  *bool        `json:"implicit,omitempty"`  // Whether the property is implicit (implies false if absent).
+	Important *bool        `json:"important,omitempty"` // Whether the property has "!important" annotation (implies `false` if absent).
+	Implicit  *bool        `json:"implicit,omitempty"`  // Whether the property is implicit (implies `false` if absent).
 	Text      *string      `json:"text,omitempty"`      // The full property text as specified in the style.
-	ParsedOk  *bool        `json:"parsedOk,omitempty"`  // Whether the property is understood by the browser (implies true if absent).
+	ParsedOk  *bool        `json:"parsedOk,omitempty"`  // Whether the property is understood by the browser (implies `true` if absent).
 	Disabled  *bool        `json:"disabled,omitempty"`  // Whether the property is disabled by the user (present for source-based properties only).
 	Range     *SourceRange `json:"range,omitempty"`     // The entire property range in the enclosing style declaration (if available).
 }
@@ -170,30 +130,27 @@ type Property struct {
 // Media CSS media rule descriptor.
 type Media struct {
 	Text string `json:"text"` // Media query text.
-	// Source Source of the media query: "mediaRule" if specified by a @media rule, "importRule" if specified by an @import rule, "linkedSheet" if specified by a "media" attribute in a linked stylesheet's LINK tag, "inlineSheet" if specified by a "media" attribute in an inline stylesheet's STYLE tag.
+	// Source Source of the media query: "mediaRule" if specified by a @media
+	// rule, "importRule" if specified by an @import rule, "linkedSheet" if
+	// specified by a "media" attribute in a linked stylesheet's LINK tag,
+	// "inlineSheet" if specified by a "media" attribute in an inline
+	// stylesheet's STYLE tag.
 	//
 	// Values: "mediaRule", "importRule", "linkedSheet", "inlineSheet".
 	Source       string        `json:"source"`
 	SourceURL    *string       `json:"sourceURL,omitempty"`    // URL of the document containing the media query description.
 	Range        *SourceRange  `json:"range,omitempty"`        // The associated rule (@media or @import) header range in the enclosing stylesheet (if available).
 	StyleSheetID *StyleSheetID `json:"styleSheetId,omitempty"` // Identifier of the stylesheet containing this object (if exists).
-	// MediaList Array of media queries.
-	//
-	// Note: This property is experimental.
-	MediaList []MediaQuery `json:"mediaList,omitempty"`
+	MediaList    []MediaQuery  `json:"mediaList,omitempty"`    // Array of media queries.
 }
 
 // MediaQuery Media query descriptor.
-//
-// Note: This type is experimental.
 type MediaQuery struct {
 	Expressions []MediaQueryExpression `json:"expressions"` // Array of media query expressions.
 	Active      bool                   `json:"active"`      // Whether the media query condition is satisfied.
 }
 
 // MediaQueryExpression Media query expression descriptor.
-//
-// Note: This type is experimental.
 type MediaQueryExpression struct {
 	Value          float64      `json:"value"`                    // Media query expression value.
 	Unit           string       `json:"unit"`                     // Media query expression units.
@@ -202,9 +159,8 @@ type MediaQueryExpression struct {
 	ComputedLength *float64     `json:"computedLength,omitempty"` // Computed length of media query expression (if applicable).
 }
 
-// PlatformFontUsage Information about amount of glyphs that were rendered with given font.
-//
-// Note: This type is experimental.
+// PlatformFontUsage Information about amount of glyphs that were rendered
+// with given font.
 type PlatformFontUsage struct {
 	FamilyName   string  `json:"familyName"`   // Font's family name reported by platform.
 	IsCustomFont bool    `json:"isCustomFont"` // Indicates if the font was downloaded or resolved locally.
@@ -225,18 +181,10 @@ type KeyframeRule struct {
 	Style        Style            `json:"style"`                  // Associated style declaration.
 }
 
-// StyleDeclarationEdit A descriptor of operation to mutate style declaration text.
+// StyleDeclarationEdit A descriptor of operation to mutate style declaration
+// text.
 type StyleDeclarationEdit struct {
 	StyleSheetID StyleSheetID `json:"styleSheetId"` // The css style sheet identifier.
 	Range        SourceRange  `json:"range"`        // The range of the style text in the enclosing stylesheet.
 	Text         string       `json:"text"`         // New style text.
-}
-
-// InlineTextBox Details of post layout rendered text positions. The exact layout should not be regarded as stable and may change between versions.
-//
-// Note: This type is experimental.
-type InlineTextBox struct {
-	BoundingBox         dom.Rect `json:"boundingBox"`         // The absolute position bounding box.
-	StartCharacterIndex int      `json:"startCharacterIndex"` // The starting index in characters, for this post layout textbox substring.
-	NumCharacters       int      `json:"numCharacters"`       // The number of characters in this post layout textbox substring.
 }
