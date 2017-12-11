@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func upload(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan<- error, apps []App, apk *apkg.File) (err error) {
+func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan<- error, apps []App, apk *apkg.File) (err error) {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithCancel(ctx)
 	defer cancel()

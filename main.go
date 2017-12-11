@@ -135,7 +135,7 @@ func main() {
 			errc := make(chan chan error, len(apks))
 			for _, apk := range apks {
 				errc2 := make(chan error, 1)
-				go upload(ctx, *verbose, devt, errc2, apps, apk)
+				go updateAPK(ctx, *verbose, devt, errc2, apps, apk)
 				defer apk.Close()
 				errc <- errc2
 			}
