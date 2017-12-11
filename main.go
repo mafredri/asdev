@@ -123,16 +123,7 @@ func main() {
 			cancel()
 		}()
 
-		var apks []*apkg.File
-		for _, av := range *updateAPKs {
-			apk, err := apkg.Open(av)
-			if err != nil {
-				fmt.Printf("error: could open apk %q: %v\n", av, err)
-				os.Exit(1)
-			}
-			defer apk.Close()
-			apks = append(apks, apk)
-		}
+		apks := openAPKs(*updateAPKs...)
 
 		// TODO: Implement these flags.
 		_ = updateCats
@@ -145,6 +136,7 @@ func main() {
 			for _, apk := range apks {
 				errc2 := make(chan error, 1)
 				go upload(ctx, *verbose, devt, errc2, apps, apk)
+				defer apk.Close()
 				errc <- errc2
 			}
 			close(errc)
@@ -173,6 +165,19 @@ func checkLogin(username, password string) {
 		fmt.Println("error: username or password is missing, use cli flag or set in environment")
 		os.Exit(1)
 	}
+}
+
+func openAPKs(name ...string) []*apkg.File {
+	var apks []*apkg.File
+	for _, av := range name {
+		apk, err := apkg.Open(av)
+		if err != nil {
+			fmt.Printf("error: could open apk %q: %v\n", av, err)
+			os.Exit(1)
+		}
+		apks = append(apks, apk)
+	}
+	return apks
 }
 
 var (
