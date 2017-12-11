@@ -100,7 +100,7 @@ func upload(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan
 	}
 
 	for _, o := range catOpts.NodeIDs {
-		res, err := c.DOM.GetOuterHTML(ctx, &dom.GetOuterHTMLArgs{NodeID: o})
+		res, err := c.DOM.GetOuterHTML(ctx, &dom.GetOuterHTMLArgs{NodeID: &o})
 		if err != nil {
 			return err
 		}
