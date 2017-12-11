@@ -34,7 +34,7 @@ func upload(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan
 
 	conf, err := apk.Config()
 	if err != nil {
-		return errors.Wrap(err, "could read apk config")
+		return errors.Wrap(err, "could not read apk config")
 	}
 
 	app := appSlice(apps).Find(conf.General.Package, conf.General.Architecture)
