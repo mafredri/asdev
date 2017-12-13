@@ -13,12 +13,11 @@ import (
 	"github.com/mafredri/cdp"
 	"github.com/mafredri/cdp/devtool"
 	"github.com/mafredri/cdp/protocol/dom"
-	"github.com/mafredri/cdp/protocol/runtime"
 	"github.com/mafredri/cdp/rpcc"
 	"github.com/pkg/errors"
 )
 
-func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan<- error, apps []App, apk *apkg.File) (err error) {
+func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc chan<- error, apps []App, apk *apkg.File, opt options) (err error) {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithCancel(ctx)
 	defer cancel()
@@ -109,7 +108,11 @@ func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		// It only gives us OuterHTML.
 		text := html.UnescapeString(optionTagRe.ReplaceAllString(res.OuterHTML, ""))
 
-		if app.HasCategory(text) {
+		cats := opt.categories
+		if len(cats) == 0 {
+			cats = app.Categories
+		}
+		if cats.Contains(text) {
 			err = c.DOM.SetAttributeValue(ctx, &dom.SetAttributeValueArgs{
 				NodeID: o,
 				Name:   "selected",
@@ -135,58 +138,28 @@ func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		return err
 	}
 
-	for _, set := range []struct {
-		id       string
-		value    string
-		textarea bool
-	}{
-		{id: "#name_en_US", value: conf.General.Name, textarea: false},
-		// {id: "#tags_en_US", value: "", textarea: false},
-		{id: "#description_en_US", value: string(descb), textarea: true},
-		{id: "#changes_en_US", value: string(chlogb), textarea: true},
-	} {
-		if set.textarea {
-			// TODO: Figure out how to set text content of textarea without eval.
-			c.Runtime.Evaluate(ctx, &runtime.EvaluateArgs{
-				Expression: fmt.Sprintf(`document.querySelector(%q).textContent = %q`, set.id, set.value),
-			})
-			continue
-		}
-
-		sel, err := c.DOM.QuerySelector(ctx, &dom.QuerySelectorArgs{
-			NodeID:   doc.Root.NodeID,
-			Selector: set.id,
-		})
-		if err != nil {
-			return err
-		}
-
-		err = c.DOM.SetAttributeValue(ctx, &dom.SetAttributeValueArgs{
-			NodeID: sel.NodeID,
-			Name:   "value",
-			Value:  set.value,
-		})
-		if err != nil {
-			return err
-		}
-		continue
+	setTags := func() error { return nil }
+	if len(opt.tags) > 0 {
+		// setTags = func() error {
+		// 	return setInputValue(ctx, c, "#tags_en_US", strings.Join(opt.tags, " "))
+		// }
 	}
 
-	// Inherit the beta status for this app.
-	if app.Beta {
-		// Beta status is decided by #radio (Yes) and #radio2 (No).
-		sel, err := c.DOM.QuerySelector(ctx, &dom.QuerySelectorArgs{
-			NodeID:   doc.Root.NodeID,
-			Selector: "#radio",
-		})
-		if err != nil {
+	for _, fn := range []func() error{
+		func() error { return setInputValue(ctx, c, "#name_en_US", conf.General.Name) },
+		func() error { return setInputValue(ctx, c, "#description_en_US", string(descb)) },
+		func() error { return setInputValue(ctx, c, "#changes_en_US", string(chlogb)) },
+		setTags,
+	} {
+		if err = fn(); err != nil {
 			return err
 		}
-		err = c.DOM.SetAttributeValue(ctx, &dom.SetAttributeValueArgs{
-			NodeID: sel.NodeID,
-			Name:   "checked",
-			Value:  "checked",
-		})
+	}
+
+	// Inherit or set the beta status for this app.
+	if app.Beta || opt.beta {
+		// Beta status is decided by #radio (Yes) and #radio2 (No).
+		err = setCheckboxOrRadio(ctx, c, "#radio", true)
 		if err != nil {
 			return err
 		}

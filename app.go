@@ -17,33 +17,41 @@ import (
 
 // App represents an app in the ASUSTOR Developer Corner.
 type App struct {
-	ID         int       `json:"id"`
-	Package    string    `json:"package"`
-	Name       string    `json:"name"`
-	Arch       string    `json:"arch"`
-	Version    string    `json:"version"`
-	Categories []string  `json:"categories"`
-	LastUpdate time.Time `json:"lastUpdate"`
-	Status     string    `json:"status"`
-	Beta       bool      `json:"beta"`
-	Update     *App      `json:"update"`
-}
-
-// HasCategory returns true if the app has the category,
-// uses case insensitive comparison.
-func (a *App) HasCategory(cat string) bool {
-	cat = strings.ToLower(cat)
-	for _, c := range a.Categories {
-		if cat == strings.ToLower(c) {
-			return true
-		}
-	}
-	return false
+	ID         int        `json:"id"`
+	Package    string     `json:"package"`
+	Name       string     `json:"name"`
+	Arch       string     `json:"arch"`
+	Version    string     `json:"version"`
+	Categories Categories `json:"categories"`
+	LastUpdate time.Time  `json:"lastUpdate"`
+	Status     string     `json:"status"`
+	Beta       bool       `json:"beta"`
+	Update     *App       `json:"update"`
 }
 
 // UpdateURL returns the URL for updating the App.
 func (a *App) UpdateURL() string {
 	return fmt.Sprintf("http://developer.asustor.com/app/updateApp?id=%d", a.ID)
+}
+
+// Valid checks if the app is valid or not.
+func (a *App) Valid() bool {
+	return a.ID != 0
+}
+
+// Categories represents app categories.
+type Categories []string
+
+// Contains returns true if the app has the category,
+// uses case insensitive comparison.
+func (c Categories) Contains(cat string) bool {
+	cat = strings.TrimSpace(strings.ToLower(cat))
+	for _, cc := range c {
+		if cat == strings.ToLower(cc) {
+			return true
+		}
+	}
+	return false
 }
 
 type appSlice []App

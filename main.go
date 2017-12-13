@@ -25,6 +25,13 @@ const (
 // Pull in latest categories from App Central.
 //go:generate go run cmd/catgen/main.go main category.go
 
+type options struct {
+	categories Categories
+	tags       []string
+	beta       bool
+	icon       string
+}
+
 func main() {
 	var (
 		username = kingpin.Flag("username", "Username (for login)").Short('u').Envar("ASDEV_USERNAME").String()
@@ -97,7 +104,7 @@ func main() {
 	case create.FullCommand():
 		checkLogin(*username, *password)
 
-		_, cancel := context.WithTimeout(context.Background(), *timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 		defer cancel()
 
 		c := make(chan os.Signal, 1)
@@ -107,8 +114,42 @@ func main() {
 			cancel()
 		}()
 
-		log.Println(*createCats, *createTags, *createBeta, *createIcon, *createAPKs)
+		apks := openAPKs(*createAPKs...)
+
+		log.Println(*createCats, *createTags, *createBeta, *createIcon, *createAPKs, apks)
 		fmt.Println("create is not implemented yet!")
+
+		do := func(devt *devtool.DevTools, apps ...App) error {
+			errc := make(chan chan error, len(apks))
+			for _, apk := range apks {
+				errc2 := make(chan error, 1)
+				go uploadAPK(ctx, *verbose, devt, errc2, apps, apk, options{
+					categories: parseCategories(*createCats...),
+					tags:       *createTags,
+					beta:       *createBeta,
+					icon:       *createIcon,
+				})
+				defer apk.Close()
+				errc <- errc2
+			}
+			close(errc)
+
+			for e := range errc {
+				select {
+				case err := <-e:
+					if err != nil {
+						return err
+					}
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			return nil
+		}
+
+		if err := run(ctx, *verbose, !*noHeadless, *browser, *username, *password, apks, do); err != nil {
+			log.Fatal(err)
+		}
 
 	case update.FullCommand():
 		checkLogin(*username, *password)
@@ -125,17 +166,16 @@ func main() {
 
 		apks := openAPKs(*updateAPKs...)
 
-		// TODO: Implement these flags.
-		_ = updateCats
-		_ = updateTags
-		_ = updateBeta
-		_ = updateIcon
-
 		do := func(devt *devtool.DevTools, apps ...App) error {
 			errc := make(chan chan error, len(apks))
 			for _, apk := range apks {
 				errc2 := make(chan error, 1)
-				go updateAPK(ctx, *verbose, devt, errc2, apps, apk)
+				go updateAPK(ctx, *verbose, devt, errc2, apps, apk, options{
+					categories: parseCategories(*updateCats...),
+					tags:       *updateTags,
+					beta:       *updateBeta,
+					icon:       *updateIcon,
+				})
 				defer apk.Close()
 				errc <- errc2
 			}
@@ -158,6 +198,14 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+}
+
+func parseCategories(c ...string) []string {
+	var names []string
+	for _, s := range c {
+		names = append(names, category(s).Name())
+	}
+	return names
 }
 
 func checkLogin(username, password string) {
