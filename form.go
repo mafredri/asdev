@@ -15,11 +15,14 @@ func submitForm(ctx context.Context, c *cdp.Client, expression string) error {
 	}
 	defer domContentEventFired.Close()
 
-	_, err = c.Runtime.Evaluate(ctx, &runtime.EvaluateArgs{
+	eval, err := c.Runtime.Evaluate(ctx, &runtime.EvaluateArgs{
 		Expression: expression,
 	})
 	if err != nil {
 		return err
+	}
+	if eval.ExceptionDetails != nil {
+		return eval.ExceptionDetails
 	}
 
 	_, err = domContentEventFired.Recv()
