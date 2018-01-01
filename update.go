@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"html"
+	"io"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/mafredri/asdev/apkg"
 
 	"github.com/mafredri/cdp"
 	"github.com/mafredri/cdp/devtool"
-	"github.com/mafredri/cdp/protocol/dom"
 	"github.com/mafredri/cdp/rpcc"
 	"github.com/pkg/errors"
 )
@@ -63,6 +63,29 @@ func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		return err
 	}
 
+	if len(opt.categories) == 0 {
+		opt.categories = app.Categories
+	}
+
+	setTags := func() error { return nil }
+	if len(opt.tags) > 0 {
+		setTags = func() error {
+			return setInputValue(ctx, c, "#tags_en_US", strings.Join(opt.tags, " "))
+		}
+	}
+
+	descb, err := readAll(apk.Description())
+	if err != nil {
+		return err
+	}
+
+	chlogb, err := readAll(apk.Changelog())
+	if err != nil {
+		return err
+	}
+
+	betaStatus := app.Beta || opt.beta
+
 	for _, fn := range []func() error{
 		func() error {
 			return abortOnDetachOrCrash(ctx, c.Inspector, func(err error) {
@@ -76,99 +99,26 @@ func updateAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		func() error { return navigate(ctx, c.Page, app.UpdateURL(), 10*time.Second) },
 		func() error { return setFormInputFiles(ctx, c, "#appFile", absPath) },
 		func() error { return submitForm(ctx, c, `document.getElementById('mainform').submit()`) },
-	} {
-		if err = fn(); err != nil {
-			return err
-		}
-	}
 
-	// Fetch the document root for querying elements.
-	doc, err := c.DOM.GetDocument(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	// Fetch all product category options so that we can inherit them from
-	// the previous version that was published.
-	catOpts, err := c.DOM.QuerySelectorAll(ctx, &dom.QuerySelectorAllArgs{
-		NodeID:   doc.Root.NodeID,
-		Selector: "#category_id option",
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, o := range catOpts.NodeIDs {
-		res, err := c.DOM.GetOuterHTML(ctx, &dom.GetOuterHTMLArgs{NodeID: &o})
-		if err != nil {
-			return err
-		}
-
-		// TODO: Cleanup this limitation of the Chrome Debuggin Protocol.
-		// It only gives us OuterHTML.
-		text := html.UnescapeString(optionTagRe.ReplaceAllString(res.OuterHTML, ""))
-
-		cats := opt.categories
-		if len(cats) == 0 {
-			cats = app.Categories
-		}
-		if cats.Contains(text) {
-			err = c.DOM.SetAttributeValue(ctx, &dom.SetAttributeValueArgs{
-				NodeID: o,
-				Name:   "selected",
-				Value:  "selected",
-			})
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	descr := apk.Description()
-	defer descr.Close()
-	descb, err := ioutil.ReadAll(descr)
-	if err != nil {
-		return err
-	}
-
-	chlogr := apk.Changelog()
-	defer chlogr.Close()
-	chlogb, err := ioutil.ReadAll(chlogr)
-	if err != nil {
-		return err
-	}
-
-	setTags := func() error { return nil }
-	if len(opt.tags) > 0 {
-		// setTags = func() error {
-		// 	return setInputValue(ctx, c, "#tags_en_US", strings.Join(opt.tags, " "))
-		// }
-	}
-
-	for _, fn := range []func() error{
+		func() error { return setCategories(ctx, c, opt.categories) },
 		func() error { return setInputValue(ctx, c, "#name_en_US", conf.General.Name) },
 		func() error { return setInputValue(ctx, c, "#description_en_US", string(descb)) },
 		func() error { return setInputValue(ctx, c, "#changes_en_US", string(chlogb)) },
 		setTags,
+		// Beta status is decided by #radio (Yes) and #radio2 (No).
+		func() error { return setCheckboxOrRadio(ctx, c, "#radio", betaStatus) },
+		func() error { return setCheckboxOrRadio(ctx, c, "#radio2", !betaStatus) },
+		func() error { return submitForm(ctx, c, `document.getElementById('mainform').submit()`) },
 	} {
 		if err = fn(); err != nil {
 			return err
 		}
 	}
 
-	// Inherit or set the beta status for this app.
-	if app.Beta || opt.beta {
-		// Beta status is decided by #radio (Yes) and #radio2 (No).
-		err = setCheckboxOrRadio(ctx, c, "#radio", true)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = submitForm(ctx, c, `document.getElementById('mainform').submit()`)
-	if err != nil {
-		return err
-	}
-
 	return nil
+}
+
+func readAll(r io.ReadCloser) ([]byte, error) {
+	defer r.Close()
+	return ioutil.ReadAll(r)
 }

@@ -76,9 +76,14 @@ func uploadAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		func() error { return c.DOM.Enable(ctx) },
 		func() error { return c.Network.Enable(ctx, nil) },
 		func() error { return c.Runtime.Enable(ctx) },
+
 		func() error { return navigate(ctx, c.Page, "http://developer.asustor.com/app/upload", 10*time.Second) },
 		func() error { return setFormInputFiles(ctx, c, "#appFile", absPath) },
 		func() error { return setCheckboxOrRadio(ctx, c, `#is_beta`, false) },
+		func() error { return submitForm(ctx, c, `document.getElementById('mainform').submit()`) },
+
+		func() error { return setCategories(ctx, c, opt.categories) },
+		func() error { return setInputValue(ctx, c, `#tags_en_US`, strings.Join(opt.tags, " ")) },
 		func() error { return submitForm(ctx, c, `document.getElementById('mainform').submit()`) },
 	} {
 		if err = fn(); err != nil {
@@ -86,6 +91,26 @@ func uploadAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		}
 	}
 
+	/*
+		Support Media Mode?
+
+		<input type="hidden" name="media_mode" id="media_mode" value="0">
+		<tr>
+			<td align="center"><span class="star">*</span><strong>Media Mode</strong></td>
+			<td class="addAppIcon">
+				<input name="media_mode" id="no_media_mode" type="radio" value="0" checked="checked" chk="true" fieldname="Media Mode Description">  No media mode.<br>
+				<input name="media_mode" id="is_media_mode" type="radio" value="1" chk="true" fieldname="Media Mode Description">  Some functions require media mode<br>
+				<input name="media_mode" id="is_media_mode2" type="radio" value="2" chk="true" fieldname="Media Mode Description">  Be sure to media mode to use
+			</td>
+		</tr>
+	*/
+
+	// TODO: Implement icon/licence/submit for review.
+
+	return nil
+}
+
+func setCategories(ctx context.Context, c *cdp.Client, cat Categories) error {
 	// Fetch the document root for querying elements.
 	doc, err := c.DOM.GetDocument(ctx, nil)
 	if err != nil {
@@ -112,7 +137,7 @@ func uploadAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 		// It only gives us OuterHTML.
 		text := html.UnescapeString(optionTagRe.ReplaceAllString(res.OuterHTML, ""))
 
-		if opt.categories.Contains(text) {
+		if cat.Contains(text) {
 			err = c.DOM.SetAttributeValue(ctx, &dom.SetAttributeValueArgs{
 				NodeID: o,
 				Name:   "selected",
@@ -123,32 +148,6 @@ func uploadAPK(ctx context.Context, verbose bool, devt *devtool.DevTools, errc c
 			}
 		}
 	}
-
-	err = setInputValue(ctx, c, `#tags_en_US`, strings.Join(opt.tags, " "))
-	if err != nil {
-		return err
-	}
-
-	err = submitForm(ctx, c, `document.getElementById('mainform').submit()`)
-	if err != nil {
-		return err
-	}
-
-	/*
-		Support Media Mode?
-
-		<input type="hidden" name="media_mode" id="media_mode" value="0">
-		<tr>
-			<td align="center"><span class="star">*</span><strong>Media Mode</strong></td>
-			<td class="addAppIcon">
-				<input name="media_mode" id="no_media_mode" type="radio" value="0" checked="checked" chk="true" fieldname="Media Mode Description">  No media mode.<br>
-				<input name="media_mode" id="is_media_mode" type="radio" value="1" chk="true" fieldname="Media Mode Description">  Some functions require media mode<br>
-				<input name="media_mode" id="is_media_mode2" type="radio" value="2" chk="true" fieldname="Media Mode Description">  Be sure to media mode to use
-			</td>
-		</tr>
-	*/
-
-	time.Sleep(30 * time.Second)
 
 	return nil
 }
